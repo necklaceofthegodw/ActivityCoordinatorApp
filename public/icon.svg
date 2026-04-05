@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2563EB"/>
+  <!-- Location pin -->
+  <path d="M256 96c-66.3 0-120 53.7-120 120 0 80 120 200 120 200s120-120 120-200c0-66.3-53.7-120-120-120z" fill="white"/>
+  <circle cx="256" cy="216" r="44" fill="#2563EB"/>
+  <!-- People dots at bottom -->
+  <circle cx="176" cy="392" r="24" fill="white" opacity="0.85"/>
+  <circle cx="256" cy="392" r="24" fill="white" opacity="0.85"/>
+  <circle cx="336" cy="392" r="24" fill="white" opacity="0.85"/>
+</svg>

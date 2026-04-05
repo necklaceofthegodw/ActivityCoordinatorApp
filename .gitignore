@@ -1,2 +1,26 @@
 compound-engineering-plugin-main/
 .DS_Store
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Environment variables
+.env.local
+.env.*.local
+
+# Vite
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor
+.vscode/
+.idea/
+
+# Supabase
+.supabase/
