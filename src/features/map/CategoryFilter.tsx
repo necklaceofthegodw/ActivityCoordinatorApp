@@ -1,19 +1,13 @@
 import type { ActivityCategory } from '@/lib/database.types'
-
-const CATEGORIES: { value: ActivityCategory; label: string; emoji: string }[] = [
-  { value: 'walk', label: 'Spacer', emoji: '🚶' },
-  { value: 'coffee', label: 'Kawa', emoji: '☕' },
-  { value: 'squash', label: 'Squash', emoji: '🎾' },
-  { value: 'running', label: 'Bieganie', emoji: '🏃' },
-  { value: 'language', label: 'Język', emoji: '📚' },
-]
+import { CATEGORY_MAP } from '@/lib/categories'
 
 interface Props {
+  pinned: ActivityCategory[]
   selected: ActivityCategory[]
   onChange: (categories: ActivityCategory[]) => void
 }
 
-export function CategoryFilter({ selected, onChange }: Props) {
+export function CategoryFilter({ pinned, selected, onChange }: Props) {
   function toggle(category: ActivityCategory) {
     if (selected.includes(category)) {
       onChange(selected.filter((c) => c !== category))
@@ -23,20 +17,21 @@ export function CategoryFilter({ selected, onChange }: Props) {
   }
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1">
-      {CATEGORIES.map((cat) => {
-        const isActive = selected.includes(cat.value)
+    <div className="flex flex-col gap-1.5">
+      {pinned.map((value) => {
+        const cat = CATEGORY_MAP[value]
+        const isActive = selected.includes(value)
         return (
           <button
-            key={cat.value}
-            onClick={() => toggle(cat.value)}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition ${
+            key={value}
+            onClick={() => toggle(value)}
+            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm transition active:scale-95 ${
               isActive
                 ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 shadow-sm hover:bg-gray-50'
+                : 'bg-white/95 text-gray-700'
             }`}
           >
-            <span>{cat.emoji}</span>
+            <span className="text-base leading-none">{cat.emoji}</span>
             <span>{cat.label}</span>
           </button>
         )

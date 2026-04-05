@@ -1,4 +1,8 @@
-export type ActivityCategory = 'walk' | 'coffee' | 'squash' | 'running' | 'language'
+export type ActivityCategory =
+  | 'walk' | 'coffee' | 'squash' | 'running' | 'language'
+  | 'skateboard' | 'cycling' | 'yoga' | 'climbing' | 'swimming'
+  | 'basketball' | 'volleyball' | 'chess' | 'cooking' | 'hiking'
+  | 'photography' | 'music' | 'board_games' | 'gym' | 'dancing'
 export type ActivityStatus = 'open' | 'full' | 'active' | 'archived' | 'expired'
 
 export type Database = {

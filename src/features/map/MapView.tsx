@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import { useUserLocation } from './useUserLocation'
 import { useActivities } from '@/features/activities/useActivities'
 import { CategoryFilter } from './CategoryFilter'
+import { CategoryPicker } from './CategoryPicker'
 import { RadiusSlider } from './RadiusSlider'
 import type { ActivityCategory, Database } from '@/lib/database.types'
 
@@ -128,6 +129,7 @@ interface Props {
 export function MapView({ onActivitySelect, onCreateActivity }: Props) {
   const { location, isLoading } = useUserLocation()
   const [radiusKm, setRadiusKm] = useState(5)
+  const [pinnedCategories, setPinnedCategories] = useState<ActivityCategory[]>(['walk', 'coffee', 'squash', 'running', 'language'])
   const [categories, setCategories] = useState<ActivityCategory[]>([])
   const [hasRecentered, setHasRecentered] = useState(false)
   const [isPickingLocation, setIsPickingLocation] = useState(false)
@@ -209,15 +211,12 @@ export function MapView({ onActivitySelect, onCreateActivity }: Props) {
         ))}
       </MapContainer>
 
-      {/* Top controls overlay */}
-      <div className="absolute left-0 right-0 top-0 z-[1000] space-y-2 p-3">
-        {/* Kategorie — z prawym marginesem na przycisk profilu */}
-        <div className="pr-14">
-          <CategoryFilter selected={categories} onChange={setCategories} />
-        </div>
-        <div className="rounded-xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur-sm">
+      {/* Top-left controls: radius slider + category filters */}
+      <div className="absolute left-0 top-0 z-[1000] flex flex-col gap-2 p-3" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+        <div className="rounded-xl bg-white/95 px-3 py-2 shadow-sm backdrop-blur-sm">
           <RadiusSlider value={radiusKm} onChange={(km) => { setRadiusKm(km); setHasRecentered(true) }} />
         </div>
+        <CategoryFilter pinned={pinnedCategories} selected={categories} onChange={setCategories} />
       </div>
 
       {/* Pick location banner */}
@@ -232,6 +231,19 @@ export function MapView({ onActivitySelect, onCreateActivity }: Props) {
               Anuluj
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Bottom-left: category picker */}
+      {!isPickingLocation && (
+        <div className="absolute bottom-6 left-4 z-[1000]">
+          <CategoryPicker
+            pinned={pinnedCategories}
+            onChange={(next) => {
+              setPinnedCategories(next)
+              setCategories((prev) => prev.filter((c) => next.includes(c)))
+            }}
+          />
         </div>
       )}
 
