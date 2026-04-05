@@ -211,7 +211,10 @@ export function MapView({ onActivitySelect, onCreateActivity }: Props) {
 
       {/* Top controls overlay */}
       <div className="absolute left-0 right-0 top-0 z-[1000] space-y-2 p-3">
-        <CategoryFilter selected={categories} onChange={setCategories} />
+        {/* Kategorie — z prawym marginesem na przycisk profilu */}
+        <div className="pr-14">
+          <CategoryFilter selected={categories} onChange={setCategories} />
+        </div>
         <div className="rounded-xl bg-white/90 px-3 py-2 shadow-sm backdrop-blur-sm">
           <RadiusSlider value={radiusKm} onChange={(km) => { setRadiusKm(km); setHasRecentered(true) }} />
         </div>

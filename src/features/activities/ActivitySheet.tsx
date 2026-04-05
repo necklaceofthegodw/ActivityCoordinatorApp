@@ -43,7 +43,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen }: Props) {
       />
 
       {/* Sheet */}
-      <div className="absolute bottom-0 left-0 right-0 z-[1002] rounded-t-2xl bg-white p-5 shadow-xl">
+      <div className="absolute bottom-0 left-0 right-0 z-[1002] max-h-[85dvh] overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
         {/* Handle */}
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
 
