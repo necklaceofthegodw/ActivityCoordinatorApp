@@ -245,7 +245,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
 
       {/* Bottom-left: category picker */}
       {!isPickingLocation && (
-        <div className="absolute bottom-6 left-4 z-[1000]">
+        <div className="absolute left-4 z-[1000]" style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
           <CategoryPicker
             pinned={pinnedCategories}
             onChange={(next) => {
@@ -260,7 +260,8 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
       {!isPickingLocation && (
         <button
           onClick={handleFabClick}
-          className="absolute bottom-6 right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition hover:bg-blue-700 active:scale-95"
+          className="absolute right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition hover:bg-blue-700 active:scale-95"
+          style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
           aria-label="Dodaj aktywność"
         >
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

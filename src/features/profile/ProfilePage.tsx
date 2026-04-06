@@ -10,6 +10,7 @@ import { useProfile, useActivityHistory } from './useProfile'
 import { ReportUserDialog } from '@/features/reports/ReportUserDialog'
 import { getTierInfo, getNextTierPoints, TIERS } from '@/lib/tiers'
 import { CATEGORY_MAP } from '@/lib/categories'
+import { useBackButton } from '@/hooks/useBackButton'
 
 const editSchema = z.object({
   bio: z.string().max(160, 'Max. 160 znaków').optional(),
@@ -34,6 +35,8 @@ export function ProfilePage({ userId, onClose }: Props) {
 
   const { signOut } = useAuth()
   const isOwnProfile = user?.id === userId
+
+  useBackButton(true, onClose)
 
   const { register, handleSubmit, formState: { errors } } = useForm<EditForm>({
     resolver: zodResolver(editSchema),

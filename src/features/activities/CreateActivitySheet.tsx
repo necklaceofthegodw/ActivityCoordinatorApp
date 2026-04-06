@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { useCreateActivity } from './useCreateActivity'
 import { ALL_CATEGORIES, CATEGORY_MAP } from '@/lib/categories'
 import type { ActivityCategory } from '@/lib/database.types'
+import { useBackButton } from '@/hooks/useBackButton'
 
 function toLocalDateTimeString(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -38,6 +39,7 @@ interface Props {
 
 export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Props) {
   const create = useCreateActivity()
+  useBackButton(true, onClose)
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),

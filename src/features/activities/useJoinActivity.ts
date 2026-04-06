@@ -20,6 +20,7 @@ export function useJoinActivity() {
     onSuccess: (_data, activityId) => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
       queryClient.invalidateQueries({ queryKey: ['participant-status', activityId] })
+      queryClient.invalidateQueries({ queryKey: ['my-current-activity'] })
       toast.success('Dołączyłeś do aktywności!')
     },
     onError: (err: unknown) => {

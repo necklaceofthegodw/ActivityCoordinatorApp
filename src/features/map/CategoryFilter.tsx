@@ -25,14 +25,13 @@ export function CategoryFilter({ pinned, selected, onChange }: Props) {
           <button
             key={value}
             onClick={() => toggle(value)}
-            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium shadow-sm transition active:scale-95 ${
+            className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm transition active:scale-95 ${
               isActive
-                ? 'bg-blue-600 text-white'
-                : 'bg-white/95 text-gray-700'
+                ? 'bg-blue-600'
+                : 'bg-white/95'
             }`}
           >
-            <span className="text-base leading-none">{cat.emoji}</span>
-            <span>{cat.label}</span>
+            <span className="text-lg leading-none">{cat.emoji}</span>
           </button>
         )
       })}

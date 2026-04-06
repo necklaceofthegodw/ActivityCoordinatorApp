@@ -6,6 +6,7 @@ import { useParticipantStatus } from './useParticipantStatus'
 import { useProfile } from '@/features/profile/useProfile'
 import { getTierInfo } from '@/lib/tiers'
 import { CATEGORY_MAP } from '@/lib/categories'
+import { useBackButton } from '@/hooks/useBackButton'
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
 
@@ -21,6 +22,8 @@ export function ActivitySheet({ activity, onClose, onChatOpen }: Props) {
   const leave = useLeaveActivity()
   const { data: isParticipant } = useParticipantStatus(activity?.id ?? null)
   const { data: organizerProfile } = useProfile(activity?.organizer_id ?? null)
+
+  useBackButton(activity !== null, onClose)
 
   if (!activity) return null
 

@@ -22,6 +22,7 @@ export function useLeaveActivity() {
     onSuccess: (_data, activityId) => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
       queryClient.invalidateQueries({ queryKey: ['participant-status', activityId] })
+      queryClient.invalidateQueries({ queryKey: ['my-current-activity'] })
       toast.success('Opuściłeś aktywność')
     },
     onError: (err: Error) => {

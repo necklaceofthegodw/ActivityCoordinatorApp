@@ -9,6 +9,8 @@ import { CreateActivitySheet } from '@/features/activities/CreateActivitySheet'
 import { ChatView } from '@/features/chat/ChatView'
 import { ProfilePage } from '@/features/profile/ProfilePage'
 import type { ActivityCategory, Database } from '@/lib/database.types'
+import { useMyCurrentActivity } from '@/features/activities/useMyCurrentActivity'
+import { CATEGORY_MAP } from '@/lib/categories'
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
 
@@ -17,6 +19,7 @@ function MapPage() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [createLocation, setCreateLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [pinnedCategories, setPinnedCategories] = useState<ActivityCategory[]>(['walk', 'coffee', 'squash', 'running', 'language'])
+  const { data: currentActivity } = useMyCurrentActivity(user?.id ?? null)
   const [chatActivity, setChatActivity] = useState<{ id: string; title: string } | null>(null)
   const [showProfile, setShowProfile] = useState(false)
 
@@ -51,15 +54,27 @@ function MapPage() {
       )}
 
       {/* Przycisk profilu na mapie */}
-      <button
-        onClick={() => setShowProfile(true)}
-        className="absolute right-4 top-4 z-[1000] flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition hover:bg-gray-50"
-        aria-label="Mój profil"
-      >
-        <svg className="h-5 w-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      </button>
+      <div className="absolute right-4 top-4 z-[1000] flex flex-col items-end gap-2" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <button
+          onClick={() => setShowProfile(true)}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition hover:bg-gray-50"
+          aria-label="Mój profil"
+        >
+          <svg className="h-5 w-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </button>
+
+        {currentActivity && (
+          <button
+            onClick={() => setChatActivity({ id: currentActivity.id, title: currentActivity.title })}
+            className="flex items-center gap-2 rounded-full bg-white py-2 pl-2.5 pr-3 shadow-md transition hover:bg-gray-50 active:scale-95"
+          >
+            <span className="text-base leading-none">{CATEGORY_MAP[currentActivity.category].emoji}</span>
+            <span className="max-w-[120px] truncate text-xs font-medium text-gray-800">{currentActivity.title}</span>
+          </button>
+        )}
+      </div>
 
       {chatActivity && (
         <ChatView

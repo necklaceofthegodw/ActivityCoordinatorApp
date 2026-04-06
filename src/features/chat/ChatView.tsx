@@ -4,6 +4,7 @@ import { useChat } from './useChat'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { FlappyBird } from '@/features/game/FlappyBird'
 import { ProfilePage } from '@/features/profile/ProfilePage'
+import { useBackButton } from '@/hooks/useBackButton'
 
 type Tab = 'chat' | 'game'
 
@@ -21,6 +22,8 @@ export function ChatView({ activityId, activityTitle, onClose }: Props) {
   const [isSending, setIsSending] = useState(false)
   const [viewingProfile, setViewingProfile] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  useBackButton(true, onClose)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -78,21 +81,13 @@ export function ChatView({ activityId, activityTitle, onClose }: Props) {
           Mój profil
         </button>
 
-        {/* Tabs */}
-        <div className="flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
-          <button
-            onClick={() => setActiveTab('chat')}
-            className={`rounded-md px-3 py-1.5 transition ${activeTab === 'chat' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
-          >
-            💬 Czat
-          </button>
-          <button
-            onClick={() => setActiveTab('game')}
-            className={`rounded-md px-3 py-1.5 transition ${activeTab === 'game' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
-          >
-            🐦 Gra
-          </button>
-        </div>
+        <button
+          onClick={() => setActiveTab(activeTab === 'game' ? 'chat' : 'game')}
+          className={`shrink-0 text-lg transition ${activeTab === 'game' ? 'opacity-100' : 'opacity-30 hover:opacity-60'}`}
+          aria-label="Flappy Bird"
+        >
+          🐦
+        </button>
       </div>
 
       {/* Game tab */}
@@ -171,7 +166,7 @@ export function ChatView({ activityId, activityTitle, onClose }: Props) {
           </div>
 
           {/* Input */}
-          <div className="border-t border-gray-100 px-3 py-3">
+          <div className="border-t border-gray-100 px-3 pt-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
             <div className="flex items-end gap-2">
               <textarea
                 value={input}
