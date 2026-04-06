@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { ActivityCategory } from '@/lib/database.types'
 import { ALL_CATEGORIES } from '@/lib/categories'
 
@@ -7,10 +6,11 @@ const MAX_PINNED = 5
 interface Props {
   pinned: ActivityCategory[]
   onChange: (pinned: ActivityCategory[]) => void
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function CategoryPicker({ pinned, onChange }: Props) {
-  const [isOpen, setIsOpen] = useState(false)
+export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props) {
 
   function toggle(value: ActivityCategory) {
     if (pinned.includes(value)) {
@@ -23,7 +23,7 @@ export function CategoryPicker({ pinned, onChange }: Props) {
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => onOpenChange(true)}
         className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-xl shadow-md transition active:scale-95"
         aria-label="Wybierz kategorie"
       >
@@ -74,7 +74,7 @@ export function CategoryPicker({ pinned, onChange }: Props) {
           {/* Done button */}
           <div className="px-5 py-4 border-t border-gray-100">
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => onOpenChange(false)}
               className="w-full rounded-2xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98]"
             >
               Gotowe

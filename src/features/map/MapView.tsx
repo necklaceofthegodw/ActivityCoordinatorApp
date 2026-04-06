@@ -141,6 +141,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
   const [radiusKm, setRadiusKm] = useState(5)
   const [categories, setCategories] = useState<ActivityCategory[]>([])
   const [hasRecentered, setHasRecentered] = useState(false)
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [isPickingLocation, setIsPickingLocation] = useState(false)
   const [pendingPin, setPendingPin] = useState<LatLng | null>(null)
 
@@ -220,13 +221,15 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
         ))}
       </MapContainer>
 
-      {/* Top-left controls: radius slider + category filters */}
-      <div className="absolute left-0 top-0 z-[1000] flex flex-col gap-2 p-3" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.75rem)' }}>
-        <div className="rounded-xl bg-white/95 px-3 py-2 shadow-sm backdrop-blur-sm">
-          <RadiusSlider value={radiusKm} onChange={(km) => { setRadiusKm(km); setHasRecentered(true) }} />
+      {/* Top-left controls: radius slider + category filters — hidden while picker is open */}
+      {!isPickerOpen && (
+        <div className="absolute left-0 top-0 z-[1000] flex flex-col gap-2 p-3" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.75rem)' }}>
+          <div className="rounded-xl bg-white/95 px-3 py-2 shadow-sm backdrop-blur-sm">
+            <RadiusSlider value={radiusKm} onChange={(km) => { setRadiusKm(km); setHasRecentered(true) }} />
+          </div>
+          <CategoryFilter pinned={pinnedCategories} selected={categories} onChange={setCategories} />
         </div>
-        <CategoryFilter pinned={pinnedCategories} selected={categories} onChange={setCategories} />
-      </div>
+      )}
 
       {/* Pick location banner */}
       {isPickingLocation && (
@@ -243,11 +246,13 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
         </div>
       )}
 
-      {/* Bottom-left: category picker */}
+      {/* Bottom-left: category picker — always rendered so the fullscreen overlay can show */}
       {!isPickingLocation && (
         <div className="absolute left-4 z-[1000]" style={{ bottom: '1.5rem' }}>
           <CategoryPicker
             pinned={pinnedCategories}
+            isOpen={isPickerOpen}
+            onOpenChange={setIsPickerOpen}
             onChange={(next) => {
               onPinnedChange(next)
               setCategories((prev) => prev.filter((c) => next.includes(c)))
@@ -256,8 +261,8 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
         </div>
       )}
 
-      {/* FAB */}
-      {!isPickingLocation && (
+      {/* FAB — hidden while picker is open */}
+      {!isPickingLocation && !isPickerOpen && (
         <button
           onClick={handleFabClick}
           className="absolute right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition hover:bg-blue-700 active:scale-95"

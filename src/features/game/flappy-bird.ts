@@ -1,11 +1,11 @@
-const GRAVITY = 0.38
-const JUMP_VELOCITY = -7.5
-const PIPE_SPEED = 2.4
+const GRAVITY = 0.25
+const JUMP_VELOCITY = -6.2
+const PIPE_SPEED = 1.7
 const PIPE_WIDTH = 54
-const PIPE_GAP = 158
+const PIPE_GAP = 200
 const BIRD_X = 80
 const BIRD_RADIUS = 14
-const PIPE_INTERVAL_MS = 1900
+const PIPE_INTERVAL_MS = 2400
 
 interface Pipe {
   x: number
