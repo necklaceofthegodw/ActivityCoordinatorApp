@@ -31,7 +31,7 @@ export function CategoryPicker({ pinned, onChange }: Props) {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[1002] flex flex-col bg-white" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)' }}>
+        <div className="fixed inset-0 z-[1002] flex flex-col bg-white" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.5rem)', paddingBottom: '1rem' }}>
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div>

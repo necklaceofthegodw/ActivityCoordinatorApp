@@ -221,7 +221,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
       </MapContainer>
 
       {/* Top-left controls: radius slider + category filters */}
-      <div className="absolute left-0 top-0 z-[1000] flex flex-col gap-2 p-3" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+      <div className="absolute left-0 top-0 z-[1000] flex flex-col gap-2 p-3" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.75rem)' }}>
         <div className="rounded-xl bg-white/95 px-3 py-2 shadow-sm backdrop-blur-sm">
           <RadiusSlider value={radiusKm} onChange={(km) => { setRadiusKm(km); setHasRecentered(true) }} />
         </div>
@@ -245,7 +245,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
 
       {/* Bottom-left: category picker */}
       {!isPickingLocation && (
-        <div className="absolute left-4 z-[1000]" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 4rem)' }}>
+        <div className="absolute left-4 z-[1000]" style={{ bottom: '1.5rem' }}>
           <CategoryPicker
             pinned={pinnedCategories}
             onChange={(next) => {
@@ -261,7 +261,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
         <button
           onClick={handleFabClick}
           className="absolute right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition hover:bg-blue-700 active:scale-95"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 4rem)' }}
+          style={{ bottom: '1.5rem' }}
           aria-label="Dodaj aktywność"
         >
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider'
 import LoginPage from '@/features/auth/LoginPage'
@@ -30,7 +30,7 @@ function MapPage() {
   }
 
   return (
-    <div className="relative h-screen w-screen">
+    <div className="relative w-screen" style={{ height: 'var(--app-height, 100svh)' }}>
       <MapView
         onActivitySelect={setSelectedActivity}
         onCreateActivity={setCreateLocation}
@@ -54,7 +54,7 @@ function MapPage() {
       )}
 
       {/* Przycisk profilu na mapie */}
-      <div className="absolute right-4 top-4 z-[1000] flex flex-col items-end gap-2" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <div className="absolute right-4 top-0 z-[1000] flex flex-col items-end gap-2" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 1rem)' }}>
         <button
           onClick={() => setShowProfile(true)}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition hover:bg-gray-50"
@@ -132,6 +132,23 @@ function AppRoutes() {
 }
 
 export default function App() {
+  useEffect(() => {
+    function update() {
+      const vv = window.visualViewport
+      const height = vv ? vv.height : window.innerHeight
+      const topInset = vv ? vv.offsetTop : 0
+      document.documentElement.style.setProperty('--app-height', `${height}px`)
+      document.documentElement.style.setProperty('--top-inset', `${topInset}px`)
+    }
+    update()
+    window.visualViewport?.addEventListener('resize', update)
+    window.addEventListener('resize', update)
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
   return (
     <BrowserRouter>
       <AuthProvider>
