@@ -26,11 +26,14 @@ export class FlappyBirdGame {
   private bestScore = 0
   private animationId: number | null = null
   private pipeTimer: ReturnType<typeof setTimeout> | null = null
+  private onNewHighscore: ((score: number) => void) | null = null
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, initialBestScore = 0, onNewHighscore?: (score: number) => void) {
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')!
     this.birdY = canvas.height / 2
+    this.bestScore = initialBestScore
+    this.onNewHighscore = onNewHighscore ?? null
     this.render()
   }
 
@@ -129,7 +132,10 @@ export class FlappyBirdGame {
   }
 
   private die() {
-    if (this.score > this.bestScore) this.bestScore = this.score
+    if (this.score > this.bestScore) {
+      this.bestScore = this.score
+      this.onNewHighscore?.(this.score)
+    }
     this.state = 'dead'
     if (this.pipeTimer !== null) clearTimeout(this.pipeTimer)
     if (this.animationId !== null) cancelAnimationFrame(this.animationId)

@@ -8,14 +8,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useProfile, useActivityHistory } from './useProfile'
 import { ReportUserDialog } from '@/features/reports/ReportUserDialog'
-
-const CATEGORY_LABEL: Record<string, string> = {
-  walk: '🚶 Spacer',
-  coffee: '☕ Kawa',
-  squash: '🎾 Squash',
-  running: '🏃 Bieganie',
-  language: '📚 Język',
-}
+import { getTierInfo, getNextTierPoints, TIERS } from '@/lib/tiers'
+import { CATEGORY_MAP } from '@/lib/categories'
 
 const editSchema = z.object({
   bio: z.string().max(160, 'Max. 160 znaków').optional(),
@@ -164,7 +158,40 @@ export function ProfilePage({ userId, onClose }: Props) {
           </div>
 
           <h2 className="mb-1 text-xl font-bold text-gray-900">@{profile.nickname}</h2>
-          <p className="mb-4 text-sm text-gray-400">{profile.activity_count} aktywności</p>
+
+          {/* Tier badge */}
+          {(() => {
+            const tierInfo = getTierInfo(profile.tier)
+            const nextPoints = getNextTierPoints(profile.tier)
+            const prevMin = TIERS[profile.tier]?.min ?? 0
+            const progress = nextPoints
+              ? Math.round(((profile.points - prevMin) / (nextPoints - prevMin)) * 100)
+              : 100
+            return (
+              <div className="mb-4 flex w-full max-w-xs flex-col items-center gap-2">
+                <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${tierInfo.bg} ${tierInfo.color}`}>
+                  <span>{tierInfo.emoji}</span>
+                  <span>{tierInfo.label}</span>
+                </span>
+                <p className="text-sm font-medium text-gray-700">{profile.points} pkt</p>
+                {nextPoints && (
+                  <div className="w-full">
+                    <div className="mb-1 flex justify-between text-xs text-gray-400">
+                      <span>{profile.points} pkt</span>
+                      <span>{nextPoints} pkt do {TIERS[profile.tier + 1]?.label}</span>
+                    </div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className={`h-full rounded-full transition-all ${tierInfo.bg.replace('bg-', 'bg-').replace('-100', '-400')}`}
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-gray-400">{profile.activity_count} aktywności</p>
+              </div>
+            )
+          })()}
 
           {/* Bio */}
           {isEditing ? (
@@ -211,7 +238,7 @@ export function ProfilePage({ userId, onClose }: Props) {
             <div className="space-y-2">
               {history.map((activity) => (
                 <div key={activity.id} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5">
-                  <span className="text-lg">{CATEGORY_LABEL[activity.category]?.split(' ')[0]}</span>
+                  <span className="text-lg">{CATEGORY_MAP[activity.category]?.emoji}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-gray-900">{activity.title}</p>
                     <p className="text-xs text-gray-400">

@@ -19,6 +19,9 @@ export type Database = {
           report_count: number
           push_subscription: unknown | null
           created_at: string
+          points: number
+          tier: number
+          flappy_highscore: number
         }
         Insert: {
           id: string

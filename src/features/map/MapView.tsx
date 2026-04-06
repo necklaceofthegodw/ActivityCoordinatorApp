@@ -7,6 +7,7 @@ import { useActivities } from '@/features/activities/useActivities'
 import { CategoryFilter } from './CategoryFilter'
 import { CategoryPicker } from './CategoryPicker'
 import { RadiusSlider } from './RadiusSlider'
+import { CATEGORY_MAP } from '@/lib/categories'
 import type { ActivityCategory, Database } from '@/lib/database.types'
 
 // Fix Leaflet default icon issue with Vite
@@ -18,19 +19,26 @@ L.Icon.Default.mergeOptions({
 })
 
 const CATEGORY_COLORS: Record<ActivityCategory, string> = {
-  walk: '#22c55e',
-  coffee: '#f59e0b',
-  squash: '#3b82f6',
-  running: '#ef4444',
-  language: '#8b5cf6',
-}
-
-const CATEGORY_EMOJI: Record<ActivityCategory, string> = {
-  walk: '🚶',
-  coffee: '☕',
-  squash: '🎾',
-  running: '🏃',
-  language: '📚',
+  walk:        '#22c55e',
+  coffee:      '#f59e0b',
+  squash:      '#3b82f6',
+  running:     '#ef4444',
+  language:    '#8b5cf6',
+  skateboard:  '#f97316',
+  cycling:     '#06b6d4',
+  yoga:        '#ec4899',
+  climbing:    '#84cc16',
+  swimming:    '#0ea5e9',
+  basketball:  '#f59e0b',
+  volleyball:  '#10b981',
+  chess:       '#6b7280',
+  cooking:     '#d97706',
+  hiking:      '#65a30d',
+  photography: '#7c3aed',
+  music:       '#db2777',
+  board_games: '#dc2626',
+  gym:         '#1d4ed8',
+  dancing:     '#c026d3',
 }
 
 const userLocationIcon = L.divIcon({
@@ -49,7 +57,7 @@ const newPinIcon = L.divIcon({
 
 function createActivityIcon(category: ActivityCategory) {
   const color = CATEGORY_COLORS[category]
-  const emoji = CATEGORY_EMOJI[category]
+  const emoji = CATEGORY_MAP[category].emoji
   return L.divIcon({
     className: '',
     html: `<div style="background:${color};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.25);border:2px solid white;">${emoji}</div>`,
@@ -124,12 +132,13 @@ function ActivityMarker({ activity, onSelect }: ActivityMarkerProps) {
 interface Props {
   onActivitySelect: (activity: Activity) => void
   onCreateActivity: (latlng: LatLng) => void
+  pinnedCategories: ActivityCategory[]
+  onPinnedChange: (pinned: ActivityCategory[]) => void
 }
 
-export function MapView({ onActivitySelect, onCreateActivity }: Props) {
+export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, onPinnedChange }: Props) {
   const { location, isLoading } = useUserLocation()
   const [radiusKm, setRadiusKm] = useState(5)
-  const [pinnedCategories, setPinnedCategories] = useState<ActivityCategory[]>(['walk', 'coffee', 'squash', 'running', 'language'])
   const [categories, setCategories] = useState<ActivityCategory[]>([])
   const [hasRecentered, setHasRecentered] = useState(false)
   const [isPickingLocation, setIsPickingLocation] = useState(false)
@@ -240,7 +249,7 @@ export function MapView({ onActivitySelect, onCreateActivity }: Props) {
           <CategoryPicker
             pinned={pinnedCategories}
             onChange={(next) => {
-              setPinnedCategories(next)
+              onPinnedChange(next)
               setCategories((prev) => prev.filter((c) => next.includes(c)))
             }}
           />

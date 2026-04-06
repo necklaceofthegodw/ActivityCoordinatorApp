@@ -8,7 +8,7 @@ import { ActivitySheet } from '@/features/activities/ActivitySheet'
 import { CreateActivitySheet } from '@/features/activities/CreateActivitySheet'
 import { ChatView } from '@/features/chat/ChatView'
 import { ProfilePage } from '@/features/profile/ProfilePage'
-import type { Database } from '@/lib/database.types'
+import type { ActivityCategory, Database } from '@/lib/database.types'
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
 
@@ -16,6 +16,7 @@ function MapPage() {
   const { user } = useAuth()
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [createLocation, setCreateLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [pinnedCategories, setPinnedCategories] = useState<ActivityCategory[]>(['walk', 'coffee', 'squash', 'running', 'language'])
   const [chatActivity, setChatActivity] = useState<{ id: string; title: string } | null>(null)
   const [showProfile, setShowProfile] = useState(false)
 
@@ -30,6 +31,8 @@ function MapPage() {
       <MapView
         onActivitySelect={setSelectedActivity}
         onCreateActivity={setCreateLocation}
+        pinnedCategories={pinnedCategories}
+        onPinnedChange={setPinnedCategories}
       />
 
       <ActivitySheet
@@ -42,6 +45,7 @@ function MapPage() {
         <CreateActivitySheet
           lat={createLocation.lat}
           lng={createLocation.lng}
+          pinnedCategories={pinnedCategories}
           onClose={() => setCreateLocation(null)}
         />
       )}

@@ -2,15 +2,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateActivity } from './useCreateActivity'
+import { ALL_CATEGORIES, CATEGORY_MAP } from '@/lib/categories'
 import type { ActivityCategory } from '@/lib/database.types'
-
-const CATEGORIES: { value: ActivityCategory; label: string; emoji: string }[] = [
-  { value: 'walk', label: 'Spacer', emoji: '🚶' },
-  { value: 'coffee', label: 'Kawa', emoji: '☕' },
-  { value: 'squash', label: 'Squash', emoji: '🎾' },
-  { value: 'running', label: 'Bieganie', emoji: '🏃' },
-  { value: 'language', label: 'Nauka języka', emoji: '📚' },
-]
 
 function toLocalDateTimeString(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -20,10 +13,12 @@ function toLocalDateTimeString(date: Date): string {
 const now = new Date()
 const maxDate = new Date(now.getTime() + 48 * 60 * 60 * 1000)
 
+const allCategoryValues = ALL_CATEGORIES.map((c) => c.value) as [ActivityCategory, ...ActivityCategory[]]
+
 const schema = z.object({
   title: z.string().min(3, 'Min. 3 znaki').max(80, 'Max. 80 znaków'),
   description: z.string().max(400, 'Max. 400 znaków').optional(),
-  category: z.enum(['walk', 'coffee', 'squash', 'running', 'language'] as const),
+  category: z.enum(allCategoryValues),
   location_name: z.string().max(100).optional(),
   scheduled_at: z.string().refine((val) => {
     const d = new Date(val)
@@ -37,16 +32,17 @@ type FormValues = z.infer<typeof schema>
 interface Props {
   lat: number
   lng: number
+  pinnedCategories: ActivityCategory[]
   onClose: () => void
 }
 
-export function CreateActivitySheet({ lat, lng, onClose }: Props) {
+export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Props) {
   const create = useCreateActivity()
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      category: 'walk',
+      category: pinnedCategories[0] ?? 'walk',
       max_participants: 4,
       scheduled_at: toLocalDateTimeString(new Date(Date.now() + 60 * 60 * 1000)),
     },
@@ -87,14 +83,17 @@ export function CreateActivitySheet({ lat, lng, onClose }: Props) {
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Kategoria *</label>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((cat) => (
-                <label key={cat.value} className="cursor-pointer">
-                  <input {...register('category')} type="radio" value={cat.value} className="peer hidden" />
-                  <span className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1.5 text-sm peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                    {cat.emoji} {cat.label}
-                  </span>
-                </label>
-              ))}
+              {pinnedCategories.map((value) => {
+                const cat = CATEGORY_MAP[value]
+                return (
+                  <label key={value} className="cursor-pointer">
+                    <input {...register('category')} type="radio" value={value} className="peer hidden" />
+                    <span className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1.5 text-sm peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700">
+                      {cat.emoji} {cat.label}
+                    </span>
+                  </label>
+                )
+              })}
             </div>
           </div>
 

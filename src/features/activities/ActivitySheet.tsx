@@ -3,16 +3,11 @@ import type { Database } from '@/lib/database.types'
 import { useJoinActivity } from './useJoinActivity'
 import { useLeaveActivity } from './useLeaveActivity'
 import { useParticipantStatus } from './useParticipantStatus'
+import { useProfile } from '@/features/profile/useProfile'
+import { getTierInfo } from '@/lib/tiers'
+import { CATEGORY_MAP } from '@/lib/categories'
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
-
-const CATEGORY_LABEL: Record<string, string> = {
-  walk: '🚶 Spacer',
-  coffee: '☕ Kawa',
-  squash: '🎾 Squash',
-  running: '🏃 Bieganie',
-  language: '📚 Nauka języka',
-}
 
 interface Props {
   activity: Activity | null
@@ -25,6 +20,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen }: Props) {
   const join = useJoinActivity()
   const leave = useLeaveActivity()
   const { data: isParticipant } = useParticipantStatus(activity?.id ?? null)
+  const { data: organizerProfile } = useProfile(activity?.organizer_id ?? null)
 
   if (!activity) return null
 
@@ -50,7 +46,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen }: Props) {
         <div className="mb-1 flex items-start justify-between gap-2">
           <h2 className="text-lg font-bold text-gray-900">{activity.title}</h2>
           <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-            {CATEGORY_LABEL[activity.category]}
+            {CATEGORY_MAP[activity.category]?.emoji} {CATEGORY_MAP[activity.category]?.label}
           </span>
         </div>
 
@@ -68,6 +64,14 @@ export function ActivitySheet({ activity, onClose, onChatOpen }: Props) {
             </div>
           )}
           <span className="text-sm text-gray-500">{activity.organizer_nickname}</span>
+          {organizerProfile && (() => {
+            const tierInfo = getTierInfo(organizerProfile.tier)
+            return (
+              <span className={`ml-1 rounded-full px-2 py-0.5 text-xs font-semibold ${tierInfo.bg} ${tierInfo.color}`}>
+                {tierInfo.emoji} {tierInfo.label}
+              </span>
+            )
+          })()}
         </div>
 
         {/* Description */}
