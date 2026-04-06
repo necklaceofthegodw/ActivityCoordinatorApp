@@ -56,13 +56,13 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
   const selectedCategory = watch('category')
 
   useEffect(() => {
-    function handleFocusIn(e: FocusEvent) {
-      const target = e.target as HTMLElement
-      if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return
-      setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
+    function scrollActiveIntoView() {
+      const active = document.activeElement as HTMLElement | null
+      if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) return
+      active.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'center' })
     }
-    document.addEventListener('focusin', handleFocusIn)
-    return () => document.removeEventListener('focusin', handleFocusIn)
+    window.visualViewport?.addEventListener('resize', scrollActiveIntoView)
+    return () => window.visualViewport?.removeEventListener('resize', scrollActiveIntoView)
   }, [])
 
   async function onSubmit(data: FormValues) {
@@ -116,9 +116,9 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
         </div>
       )}
 
-      <div className="absolute inset-0 z-[1001] bg-black/20" onClick={onClose} />
+      <div className="fixed inset-0 z-[1001] bg-black/20" onClick={onClose} />
 
-      <div className="absolute bottom-0 left-0 right-0 z-[1002] max-h-[92dvh] overflow-y-auto rounded-t-2xl bg-white shadow-xl" style={{ paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}><div className="p-5">
+      <div className="fixed bottom-0 left-0 right-0 z-[1002] overflow-y-auto rounded-t-2xl bg-white shadow-xl" style={{ maxHeight: 'calc(var(--app-height, 100svh) * 0.92)', paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}><div className="p-5">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
         <h2 className="mb-4 text-lg font-bold text-gray-900">Nowa aktywność</h2>
 
