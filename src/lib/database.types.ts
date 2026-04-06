@@ -3,6 +3,7 @@ export type ActivityCategory =
   | 'skateboard' | 'cycling' | 'yoga' | 'climbing' | 'swimming'
   | 'basketball' | 'volleyball' | 'chess' | 'cooking' | 'hiking'
   | 'photography' | 'music' | 'board_games' | 'gym' | 'dancing'
+  | 'other'
 export type ActivityStatus = 'open' | 'full' | 'active' | 'archived' | 'expired'
 
 export type Database = {

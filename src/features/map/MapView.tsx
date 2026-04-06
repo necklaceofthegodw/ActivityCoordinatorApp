@@ -39,6 +39,7 @@ const CATEGORY_COLORS: Record<ActivityCategory, string> = {
   board_games: '#dc2626',
   gym:         '#1d4ed8',
   dancing:     '#c026d3',
+  other:       '#6b7280',
 }
 
 const userLocationIcon = L.divIcon({

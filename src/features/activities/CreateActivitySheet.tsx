@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -39,9 +40,11 @@ interface Props {
 
 export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Props) {
   const create = useCreateActivity()
+  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false)
   useBackButton(true, onClose)
+  useBackButton(isCategoryPickerOpen, () => setIsCategoryPickerOpen(false))
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       category: pinnedCategories[0] ?? 'walk',
@@ -49,6 +52,8 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
       scheduled_at: toLocalDateTimeString(new Date(Date.now() + 60 * 60 * 1000)),
     },
   })
+
+  const selectedCategory = watch('category')
 
   async function onSubmit(data: FormValues) {
     await create.mutateAsync({
@@ -63,6 +68,43 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
 
   return (
     <>
+      {isCategoryPickerOpen && (
+        <div className="fixed inset-0 z-[1010] flex flex-col bg-white" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.5rem)', paddingBottom: '1rem' }}>
+          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+            <h2 className="text-lg font-bold text-gray-900">Wybierz kategorię</h2>
+            <button
+              onClick={() => setIsCategoryPickerOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="grid grid-cols-4 gap-3">
+              {ALL_CATEGORIES.map((cat) => {
+                const isSelected = selectedCategory === cat.value
+                return (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => { setValue('category', cat.value, { shouldValidate: true }); setIsCategoryPickerOpen(false) }}
+                    className={`relative flex aspect-square flex-col items-center justify-center gap-1.5 rounded-2xl border-2 transition active:scale-95 ${
+                      isSelected
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 bg-white text-gray-700'
+                    }`}
+                  >
+                    <span className="text-2xl leading-none">{cat.emoji}</span>
+                    <span className="px-1 text-center text-[10px] font-medium leading-tight">{cat.label}</span>
+                    {isSelected && <span className="absolute right-1.5 top-1.5 text-xs text-blue-600">✓</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="absolute inset-0 z-[1001] bg-black/20" onClick={onClose} />
 
       <div className="absolute bottom-0 left-0 right-0 z-[1002] max-h-[92dvh] overflow-y-auto rounded-t-2xl bg-white shadow-xl" style={{ paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}><div className="p-5">
@@ -84,19 +126,40 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
           {/* Kategoria */}
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">Kategoria *</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {pinnedCategories.map((value) => {
                 const cat = CATEGORY_MAP[value]
+                const isSelected = selectedCategory === value
                 return (
-                  <label key={value} className="cursor-pointer">
-                    <input {...register('category')} type="radio" value={value} className="peer hidden" />
-                    <span className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1.5 text-sm peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700">
-                      {cat.emoji} {cat.label}
-                    </span>
-                  </label>
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setValue('category', value, { shouldValidate: true })}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
+                      isSelected
+                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {cat.emoji} {cat.label}
+                  </button>
                 )
               })}
+              <button
+                type="button"
+                onClick={() => setIsCategoryPickerOpen(true)}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
+                  selectedCategory && !pinnedCategories.includes(selectedCategory)
+                    ? 'border-blue-600 bg-blue-50 text-blue-700'
+                    : 'border-dashed border-gray-300 text-gray-500 hover:border-gray-400'
+                }`}
+              >
+                {selectedCategory && !pinnedCategories.includes(selectedCategory)
+                  ? `${CATEGORY_MAP[selectedCategory].emoji} ${CATEGORY_MAP[selectedCategory].label}`
+                  : '＋ Więcej'}
+              </button>
             </div>
+            {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category.message}</p>}
           </div>
 
           {/* Opis */}

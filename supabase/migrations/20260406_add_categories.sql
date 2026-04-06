@@ -14,3 +14,4 @@ ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'music';
 ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'board_games';
 ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'gym';
 ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'dancing';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'other';

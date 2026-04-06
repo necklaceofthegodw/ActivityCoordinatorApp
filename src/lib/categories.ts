@@ -21,6 +21,7 @@ export const ALL_CATEGORIES: { value: ActivityCategory; emoji: string; label: st
   { value: 'board_games', emoji: '🎲', label: 'Gry planszowe'  },
   { value: 'gym',         emoji: '💪', label: 'Siłownia'       },
   { value: 'dancing',     emoji: '💃', label: 'Taniec'         },
+  { value: 'other',       emoji: '✨', label: 'Inne'           },
 ]
 
 export const CATEGORY_MAP = Object.fromEntries(
