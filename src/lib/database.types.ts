@@ -38,6 +38,7 @@ export type Database = {
           activity_count?: number
           is_banned?: boolean
           report_count?: number
+          flappy_highscore?: number
         }
         Relationships: []
       }
