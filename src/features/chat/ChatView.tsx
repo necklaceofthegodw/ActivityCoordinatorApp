@@ -166,7 +166,7 @@ export function ChatView({ activityId, activityTitle, onClose }: Props) {
           </div>
 
           {/* Input */}
-          <div className="border-t border-gray-100 px-3 pt-3" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+          <div className="border-t border-gray-100 px-3 pt-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}>
             <div className="flex items-end gap-2">
               <textarea
                 value={input}

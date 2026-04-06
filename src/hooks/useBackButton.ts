@@ -4,9 +4,8 @@ import { useEffect, useRef } from 'react'
 const closeStack: Array<() => void> = []
 let listenerActive = false
 
-function handleGlobalPopState(e: PopStateEvent) {
-  // Only intercept entries we pushed
-  if (!e.state?.backModal) return
+function handleGlobalPopState() {
+  if (closeStack.length === 0) return
 
   const top = closeStack.pop()
   top?.()
@@ -30,7 +29,7 @@ export function useBackButton(isOpen: boolean, onClose: () => void) {
 
     if (!listenerActive) {
       listenerActive = true
-      window.addEventListener('popstate', handleGlobalPopState)
+      window.addEventListener('popstate', handleGlobalPopState as EventListener)
     }
 
     return () => {
@@ -41,7 +40,7 @@ export function useBackButton(isOpen: boolean, onClose: () => void) {
       if (idx !== -1) closeStack.splice(idx, 1)
 
       if (closeStack.length === 0 && listenerActive) {
-        window.removeEventListener('popstate', handleGlobalPopState)
+        window.removeEventListener('popstate', handleGlobalPopState as EventListener)
         listenerActive = false
       }
     }
