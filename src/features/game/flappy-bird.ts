@@ -1,5 +1,5 @@
 const GRAVITY = 0.25
-const JUMP_VELOCITY = -6.2
+const JUMP_VELOCITY = -5.2
 const PIPE_SPEED = 1.7
 const PIPE_WIDTH = 54
 const PIPE_GAP = 200

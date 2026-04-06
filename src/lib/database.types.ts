@@ -71,6 +71,7 @@ export type Database = {
         Update: {
           status?: Database['public']['Enums']['activity_status']
           current_participants?: number
+          description?: string | null
         }
         Relationships: []
       }

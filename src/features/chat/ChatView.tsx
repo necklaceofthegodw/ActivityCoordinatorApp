@@ -5,10 +5,13 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { FlappyBird } from '@/features/game/FlappyBird'
 import { ProfilePage } from '@/features/profile/ProfilePage'
 import { useBackButton } from '@/hooks/useBackButton'
+import { useLeaveActivity } from '@/features/activities/useLeaveActivity'
+import { useDeleteActivity } from '@/features/activities/useDeleteActivity'
+import { useUpdateActivityDescription } from '@/features/activities/useUpdateActivityDescription'
 import { CATEGORY_MAP } from '@/lib/categories'
 import type { Database } from '@/lib/database.types'
 
-type Tab = 'chat' | 'game'
+type Tab = 'chat' | 'game' | 'settings'
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
 
 interface Props {
@@ -23,13 +26,28 @@ export function ChatView({ activity, onClose }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('chat')
   const [isSending, setIsSending] = useState(false)
   const [viewingProfile, setViewingProfile] = useState<string | null>(null)
+  const [desc, setDesc] = useState(activity.description ?? '')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  const leaveActivity = useLeaveActivity()
+  const deleteActivity = useDeleteActivity()
+  const updateDesc = useUpdateActivityDescription()
+
+  const isHost = activity.organizer_id === user?.id
 
   useBackButton(true, onClose)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  function handleTabChange(tab: Tab) {
+    setActiveTab(tab)
+    setShowDeleteConfirm(false)
+    setShowLeaveConfirm(false)
+  }
 
   async function handleSend() {
     const content = input.trim()
@@ -90,24 +108,30 @@ export function ChatView({ activity, onClose }: Props) {
         {/* Tabs */}
         <div className="flex border-b border-gray-100">
           <button
-            onClick={() => setActiveTab('chat')}
+            onClick={() => handleTabChange('chat')}
             className={`flex-1 py-2.5 text-sm font-medium transition ${
-              activeTab === 'chat'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-500'
+              activeTab === 'chat' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'
             }`}
           >
             💬 Czat
           </button>
           <button
-            onClick={() => setActiveTab('game')}
+            onClick={() => handleTabChange('game')}
             className={`flex-1 py-2.5 text-sm font-medium transition ${
-              activeTab === 'game'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-500'
+              activeTab === 'game' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'
             }`}
           >
             🐦 Flappy Bird
+          </button>
+          <button
+            onClick={() => handleTabChange('settings')}
+            className={`flex-1 py-2.5 text-sm font-medium transition ${
+              activeTab === 'settings'
+                ? isHost ? 'border-b-2 border-blue-600 text-blue-600' : 'border-b-2 border-red-500 text-red-500'
+                : 'text-gray-500'
+            }`}
+          >
+            {isHost ? '⚙️ Ustawienia' : '🚪 Opuść'}
           </button>
         </div>
 
@@ -115,6 +139,97 @@ export function ChatView({ activity, onClose }: Props) {
         {activeTab === 'game' && (
           <div className="flex-1 overflow-hidden">
             <FlappyBird />
+          </div>
+        )}
+
+        {/* Settings tab — host */}
+        {activeTab === 'settings' && isHost && (
+          <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Opis aktywności</label>
+              <textarea
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                rows={4}
+                maxLength={400}
+                className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="Dodaj opis dla uczestników..."
+              />
+              <div className="mt-1 flex items-center justify-between">
+                <span className="text-xs text-gray-400">{desc.length}/400</span>
+                <button
+                  onClick={() => updateDesc.mutate({ activityId: activity.id, description: desc })}
+                  disabled={updateDesc.isPending}
+                  className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {updateDesc.isPending ? 'Zapisywanie...' : 'Zapisz'}
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 pt-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">Strefa niebezpieczna</p>
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="w-full rounded-xl border border-red-200 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                >
+                  Usuń aktywność
+                </button>
+              ) : (
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+                  <p className="text-sm text-gray-800">Czy na pewno chcesz usunąć aktywność? Tej operacji nie można cofnąć.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => deleteActivity.mutate(activity.id, { onSuccess: onClose })}
+                      disabled={deleteActivity.isPending}
+                      className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+                    >
+                      {deleteActivity.isPending ? 'Usuwanie...' : 'Tak, usuń'}
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                    >
+                      Anuluj
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Leave tab — participant */}
+        {activeTab === 'settings' && !isHost && (
+          <div className="flex-1 p-4">
+            {!showLeaveConfirm ? (
+              <button
+                onClick={() => setShowLeaveConfirm(true)}
+                className="w-full rounded-xl border border-red-200 py-3.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              >
+                🚪 Opuść aktywność
+              </button>
+            ) : (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
+                <p className="text-sm text-gray-800">Czy na pewno chcesz opuścić aktywność?</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => leaveActivity.mutate(activity.id, { onSuccess: onClose })}
+                    disabled={leaveActivity.isPending}
+                    className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
+                  >
+                    {leaveActivity.isPending ? '...' : 'Tak, opuść'}
+                  </button>
+                  <button
+                    onClick={() => setShowLeaveConfirm(false)}
+                    className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                  >
+                    Anuluj
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

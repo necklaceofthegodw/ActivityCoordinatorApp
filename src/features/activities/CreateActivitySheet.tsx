@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -55,11 +55,22 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
 
   const selectedCategory = watch('category')
 
+  useEffect(() => {
+    function handleFocusIn(e: FocusEvent) {
+      const target = e.target as HTMLElement
+      if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return
+      setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
+    }
+    document.addEventListener('focusin', handleFocusIn)
+    return () => document.removeEventListener('focusin', handleFocusIn)
+  }, [])
+
   async function onSubmit(data: FormValues) {
     await create.mutateAsync({
       ...data,
       description: data.description ?? '',
       location_name: data.location_name ?? '',
+      scheduled_at: new Date(data.scheduled_at).toISOString(),
       lat,
       lng,
     })
