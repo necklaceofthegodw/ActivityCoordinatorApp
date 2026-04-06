@@ -65,7 +65,7 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
     <>
       <div className="absolute inset-0 z-[1001] bg-black/20" onClick={onClose} />
 
-      <div className="absolute bottom-0 left-0 right-0 z-[1002] max-h-[92dvh] overflow-y-auto rounded-t-2xl bg-white shadow-xl" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}><div className="p-5">
+      <div className="absolute bottom-0 left-0 right-0 z-[1002] max-h-[92dvh] overflow-y-auto rounded-t-2xl bg-white shadow-xl" style={{ paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}><div className="p-5">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
         <h2 className="mb-4 text-lg font-bold text-gray-900">Nowa aktywność</h2>
 

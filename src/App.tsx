@@ -20,12 +20,13 @@ function MapPage() {
   const [createLocation, setCreateLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [pinnedCategories, setPinnedCategories] = useState<ActivityCategory[]>(['walk', 'coffee', 'squash', 'running', 'language'])
   const { data: currentActivity } = useMyCurrentActivity(user?.id ?? null)
-  const [chatActivity, setChatActivity] = useState<{ id: string; title: string } | null>(null)
+  const [chatActivity, setChatActivity] = useState<Activity | null>(null)
   const [showProfile, setShowProfile] = useState(false)
 
   function handleChatOpen(activityId: string) {
-    const activity = selectedActivity?.id === activityId ? selectedActivity : null
-    setChatActivity({ id: activityId, title: activity?.title ?? 'Czat' })
+    if (selectedActivity?.id === activityId) {
+      setChatActivity(selectedActivity)
+    }
     setSelectedActivity(null)
   }
 
@@ -67,7 +68,7 @@ function MapPage() {
 
         {currentActivity && (
           <button
-            onClick={() => setChatActivity({ id: currentActivity.id, title: currentActivity.title })}
+            onClick={() => setChatActivity({ id: currentActivity.id, title: currentActivity.title, category: currentActivity.category } as Activity)}
             className="flex items-center gap-2 rounded-full bg-white py-2 pl-2.5 pr-3 shadow-md transition hover:bg-gray-50 active:scale-95"
           >
             <span className="text-base leading-none">{CATEGORY_MAP[currentActivity.category].emoji}</span>
@@ -78,8 +79,7 @@ function MapPage() {
 
       {chatActivity && (
         <ChatView
-          activityId={chatActivity.id}
-          activityTitle={chatActivity.title}
+          activity={chatActivity}
           onClose={() => setChatActivity(null)}
         />
       )}
