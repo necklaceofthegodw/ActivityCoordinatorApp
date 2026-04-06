@@ -1,0 +1,16 @@
+-- Add 15 new activity categories to the enum
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'skateboard';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'cycling';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'yoga';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'climbing';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'swimming';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'basketball';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'volleyball';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'chess';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'cooking';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'hiking';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'photography';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'music';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'board_games';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'gym';
+ALTER TYPE activity_category ADD VALUE IF NOT EXISTS 'dancing';
