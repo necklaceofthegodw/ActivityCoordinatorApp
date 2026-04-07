@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -56,16 +56,17 @@ const newPinIcon = L.divIcon({
   iconAnchor: [16, 32],
 })
 
-function createActivityIcon(category: ActivityCategory) {
-  const color = CATEGORY_COLORS[category]
-  const emoji = CATEGORY_MAP[category].emoji
-  return L.divIcon({
-    className: '',
-    html: `<div style="background:${color};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.25);border:2px solid white;">${emoji}</div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-  })
-}
+const ACTIVITY_ICONS = Object.fromEntries(
+  (Object.keys(CATEGORY_COLORS) as ActivityCategory[]).map((category) => [
+    category,
+    L.divIcon({
+      className: '',
+      html: `<div style="background:${CATEGORY_COLORS[category]};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.25);border:2px solid white;">${CATEGORY_MAP[category].emoji}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+    }),
+  ])
+) as Record<ActivityCategory, L.DivIcon>
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
 type LatLng = { lat: number; lng: number }
@@ -117,11 +118,11 @@ interface ActivityMarkerProps {
   onSelect: (activity: Activity) => void
 }
 
-function ActivityMarker({ activity, onSelect }: ActivityMarkerProps) {
+const ActivityMarker = React.memo(function ActivityMarker({ activity, onSelect }: ActivityMarkerProps) {
   return (
     <Marker
       position={[activity.lat, activity.lng]}
-      icon={createActivityIcon(activity.category)}
+      icon={ACTIVITY_ICONS[activity.category]}
       eventHandlers={{ click: () => onSelect(activity) }}
     >
       <Popup>
@@ -139,7 +140,7 @@ function ActivityMarker({ activity, onSelect }: ActivityMarkerProps) {
       </Popup>
     </Marker>
   )
-}
+})
 
 interface Props {
   onActivitySelect: (activity: Activity) => void
@@ -151,7 +152,7 @@ interface Props {
 
 export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, onPinnedChange, focusLocation }: Props) {
   const { location, isLoading } = useUserLocation()
-  const [radiusKm, setRadiusKm] = useState(5)
+  const [radiusKm, setRadiusKm] = useState(12)
   const [categories, setCategories] = useState<ActivityCategory[]>([])
   const [hasRecentered, setHasRecentered] = useState(false)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
