@@ -36,9 +36,10 @@ interface Props {
   lng: number
   pinnedCategories: ActivityCategory[]
   onClose: () => void
+  isAtLimit: boolean
 }
 
-export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Props) {
+export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtLimit }: Props) {
   const create = useCreateActivity()
   const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false)
   useBackButton(true, onClose)
@@ -121,6 +122,12 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
       <div className="fixed bottom-0 left-0 right-0 z-[1002] overflow-y-auto rounded-t-2xl bg-white shadow-xl" style={{ maxHeight: 'calc(var(--app-height, 100svh) * 0.92)', paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}><div className="p-5">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
         <h2 className="mb-4 text-lg font-bold text-gray-900">Nowa aktywność</h2>
+
+        {isAtLimit && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Osiągnąłeś limit 3 aktywnych aktywności. Opuść lub poczekaj na zakończenie jednej z nich.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Tytuł */}
@@ -223,7 +230,7 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose }: Pro
           <div className="flex gap-2 pt-1">
             <button
               type="submit"
-              disabled={create.isPending}
+              disabled={create.isPending || isAtLimit}
               className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
             >
               {create.isPending ? 'Dodawanie...' : 'Dodaj na mapę'}

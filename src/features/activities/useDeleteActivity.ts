@@ -16,6 +16,7 @@ export function useDeleteActivity() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
       queryClient.invalidateQueries({ queryKey: ['my-current-activity'] })
+      queryClient.invalidateQueries({ queryKey: ['my-activities'] })
       toast.success('Aktywność została usunięta')
     },
     onError: (err: Error) => {

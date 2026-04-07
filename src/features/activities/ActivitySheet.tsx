@@ -14,9 +14,10 @@ interface Props {
   activity: Activity | null
   onClose: () => void
   onChatOpen: (activityId: string) => void
+  isAtLimit: boolean
 }
 
-export function ActivitySheet({ activity, onClose, onChatOpen }: Props) {
+export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Props) {
   const { user } = useAuth()
   const join = useJoinActivity()
   const leave = useLeaveActivity()
@@ -118,6 +119,13 @@ export function ActivitySheet({ activity, onClose, onChatOpen }: Props) {
                 className="flex-1 rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-400"
               >
                 Brak miejsc
+              </button>
+            ) : isAtLimit ? (
+              <button
+                disabled
+                className="flex-1 rounded-xl bg-amber-50 py-3 text-sm font-medium text-amber-700 border border-amber-200"
+              >
+                Limit 3 aktywności
               </button>
             ) : (
               <button

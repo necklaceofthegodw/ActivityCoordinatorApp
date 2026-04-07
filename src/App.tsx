@@ -9,7 +9,7 @@ import { CreateActivitySheet } from '@/features/activities/CreateActivitySheet'
 import { ChatView } from '@/features/chat/ChatView'
 import { ProfilePage } from '@/features/profile/ProfilePage'
 import type { ActivityCategory, Database } from '@/lib/database.types'
-import { useMyCurrentActivity } from '@/features/activities/useMyCurrentActivity'
+import { useMyActivities } from '@/features/activities/useMyActivities'
 import { CATEGORY_MAP } from '@/lib/categories'
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
@@ -19,7 +19,9 @@ function MapPage() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [createLocation, setCreateLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [pinnedCategories, setPinnedCategories] = useState<ActivityCategory[]>(['walk', 'coffee', 'squash', 'running', 'language'])
-  const { data: currentActivity } = useMyCurrentActivity(user?.id ?? null)
+  const { data: myActivitiesResult } = useMyActivities(user?.id ?? null)
+  const myActivities = myActivitiesResult?.activities ?? []
+  const isAtLimit = myActivitiesResult?.isAtLimit ?? false
   const [chatActivity, setChatActivity] = useState<Activity | null>(null)
   const [showProfile, setShowProfile] = useState(false)
 
@@ -43,6 +45,7 @@ function MapPage() {
         activity={selectedActivity}
         onClose={() => setSelectedActivity(null)}
         onChatOpen={handleChatOpen}
+        isAtLimit={isAtLimit}
       />
 
       {createLocation && (
@@ -51,6 +54,7 @@ function MapPage() {
           lng={createLocation.lng}
           pinnedCategories={pinnedCategories}
           onClose={() => setCreateLocation(null)}
+          isAtLimit={isAtLimit}
         />
       )}
 
@@ -66,15 +70,16 @@ function MapPage() {
           </svg>
         </button>
 
-        {currentActivity && (
+        {myActivities.map((activity) => (
           <button
-            onClick={() => setChatActivity({ id: currentActivity.id, title: currentActivity.title, category: currentActivity.category } as Activity)}
+            key={activity.id}
+            onClick={() => setChatActivity({ id: activity.id, title: activity.title, category: activity.category } as Activity)}
             className="flex items-center gap-2 rounded-full bg-white py-2 pl-2.5 pr-3 shadow-md transition hover:bg-gray-50 active:scale-95"
           >
-            <span className="text-base leading-none">{CATEGORY_MAP[currentActivity.category].emoji}</span>
-            <span className="max-w-[120px] truncate text-xs font-medium text-gray-800">{currentActivity.title}</span>
+            <span className="text-base leading-none">{CATEGORY_MAP[activity.category].emoji}</span>
+            <span className="max-w-[120px] truncate text-xs font-medium text-gray-800">{activity.title}</span>
           </button>
-        )}
+        ))}
       </div>
 
       {chatActivity && (

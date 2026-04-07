@@ -38,6 +38,7 @@ export function useCreateActivity() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
+      queryClient.invalidateQueries({ queryKey: ['my-activities'] })
       toast.success('Aktywność została dodana na mapę!')
     },
     onError: (err: Error) => {
