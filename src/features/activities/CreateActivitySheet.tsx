@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -31,6 +31,14 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+const SNAP_COLLAPSED = 2 / 3
+const SNAP_EXPANDED = 0.92
+
+function getAppHeight() {
+  const val = document.documentElement.style.getPropertyValue('--app-height')
+  return val ? parseFloat(val) : window.innerHeight
+}
+
 interface Props {
   lat: number
   lng: number
@@ -42,8 +50,44 @@ interface Props {
 export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtLimit }: Props) {
   const create = useCreateActivity()
   const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const dragState = useRef<{ startY: number; startHeight: number } | null>(null)
+
   useBackButton(true, onClose)
   useBackButton(isCategoryPickerOpen, () => setIsCategoryPickerOpen(false))
+
+  // Set initial height in px so drag calculations work
+  useEffect(() => {
+    if (sheetRef.current) {
+      sheetRef.current.style.height = `${getAppHeight() * SNAP_COLLAPSED}px`
+    }
+  }, [])
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    const sheet = sheetRef.current
+    if (!sheet) return
+    dragState.current = { startY: e.clientY, startHeight: sheet.offsetHeight }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragState.current || !sheetRef.current) return
+    const delta = dragState.current.startY - e.clientY
+    const appH = getAppHeight()
+    const newH = Math.min(appH * 0.95, Math.max(appH * 0.25, dragState.current.startHeight + delta))
+    sheetRef.current.style.transition = 'none'
+    sheetRef.current.style.height = `${newH}px`
+  }
+
+  function handlePointerUp() {
+    if (!dragState.current || !sheetRef.current) return
+    const appH = getAppHeight()
+    const currentH = sheetRef.current.offsetHeight
+    const targetH = appH * (currentH > appH * 0.75 ? SNAP_EXPANDED : SNAP_COLLAPSED)
+    sheetRef.current.style.transition = 'height 0.3s ease'
+    sheetRef.current.style.height = `${targetH}px`
+    dragState.current = null
+  }
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -117,134 +161,153 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
         </div>
       )}
 
-      <div className="fixed inset-0 z-[1001] bg-black/20" onClick={onClose} />
+      {/* Transparent backdrop — map visible, click to close */}
+      <div className="fixed inset-0 z-[1001]" onClick={onClose} />
 
-      <div className="fixed bottom-0 left-0 right-0 z-[1002] overflow-y-auto rounded-t-2xl bg-white shadow-xl" style={{ maxHeight: 'calc(var(--app-height, 100svh) * 0.92)', paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}><div className="p-5">
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
-        <h2 className="mb-4 text-lg font-bold text-gray-900">Nowa aktywność</h2>
+      {/* Resizable sheet */}
+      <div
+        ref={sheetRef}
+        className="fixed bottom-0 left-0 right-0 z-[1002] flex flex-col rounded-t-2xl bg-white shadow-xl"
+        style={{ height: `calc(var(--app-height, 100svh) * ${SNAP_COLLAPSED})`, paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}
+      >
+        {/* Drag handle */}
+        <div
+          className="flex shrink-0 cursor-grab touch-none justify-center px-4 pb-2 pt-3 active:cursor-grabbing"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        >
+          <div className="h-1 w-10 rounded-full bg-gray-300" />
+        </div>
 
-        {isAtLimit && (
-          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            Osiągnąłeś limit 3 aktywnych aktywności. Opuść lub poczekaj na zakończenie jednej z nich.
-          </div>
-        )}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-5 pb-2">
+          <h2 className="mb-4 text-lg font-bold text-gray-900">Nowa aktywność</h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Tytuł */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Tytuł *</label>
-            <input
-              {...register('title')}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              placeholder="np. Poranny bieg w parku"
-            />
-            {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title.message}</p>}
-          </div>
+          {isAtLimit && (
+            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Osiągnąłeś limit 3 aktywnych aktywności. Opuść lub poczekaj na zakończenie jednej z nich.
+            </div>
+          )}
 
-          {/* Kategoria */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">Kategoria *</label>
-            <div className="flex flex-wrap items-center gap-2">
-              {pinnedCategories.map((value) => {
-                const cat = CATEGORY_MAP[value]
-                const isSelected = selectedCategory === value
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setValue('category', value, { shouldValidate: true })}
-                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
-                      isSelected
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    {cat.emoji} {cat.label}
-                  </button>
-                )
-              })}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Tytuł */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Tytuł *</label>
+              <input
+                {...register('title')}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="np. Poranny bieg w parku"
+              />
+              {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title.message}</p>}
+            </div>
+
+            {/* Kategoria */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">Kategoria *</label>
+              <div className="flex flex-wrap items-center gap-2">
+                {pinnedCategories.map((value) => {
+                  const cat = CATEGORY_MAP[value]
+                  const isSelected = selectedCategory === value
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setValue('category', value, { shouldValidate: true })}
+                      className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      {cat.emoji} {cat.label}
+                    </button>
+                  )
+                })}
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryPickerOpen(true)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
+                    selectedCategory && !pinnedCategories.includes(selectedCategory)
+                      ? 'border-blue-600 bg-blue-50 text-blue-700'
+                      : 'border-dashed border-gray-300 text-gray-500 hover:border-gray-400'
+                  }`}
+                >
+                  {selectedCategory && !pinnedCategories.includes(selectedCategory)
+                    ? `${CATEGORY_MAP[selectedCategory].emoji} ${CATEGORY_MAP[selectedCategory].label}`
+                    : '＋ Więcej'}
+                </button>
+              </div>
+              {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category.message}</p>}
+            </div>
+
+            {/* Opis */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Opis</label>
+              <textarea
+                {...register('description')}
+                rows={2}
+                className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="Dodaj szczegóły..."
+              />
+            </div>
+
+            {/* Miejsce */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Nazwa miejsca</label>
+              <input
+                {...register('location_name')}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="np. Park Łazienkowski, wejście główne"
+              />
+            </div>
+
+            {/* Czas */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Kiedy? *</label>
+              <input
+                {...register('scheduled_at')}
+                type="datetime-local"
+                min={toLocalDateTimeString(new Date(Date.now() + 5 * 60 * 1000))}
+                max={toLocalDateTimeString(maxDate)}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
+              {errors.scheduled_at && <p className="mt-1 text-xs text-red-500">{errors.scheduled_at.message}</p>}
+            </div>
+
+            {/* Liczba osób */}
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">Liczba osób *</label>
+              <input
+                {...register('max_participants')}
+                type="number"
+                min={2}
+                max={50}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              />
+              {errors.max_participants && <p className="mt-1 text-xs text-red-500">{errors.max_participants.message}</p>}
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={create.isPending || isAtLimit}
+                className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+              >
+                {create.isPending ? 'Dodawanie...' : 'Dodaj na mapę'}
+              </button>
               <button
                 type="button"
-                onClick={() => setIsCategoryPickerOpen(true)}
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
-                  selectedCategory && !pinnedCategories.includes(selectedCategory)
-                    ? 'border-blue-600 bg-blue-50 text-blue-700'
-                    : 'border-dashed border-gray-300 text-gray-500 hover:border-gray-400'
-                }`}
+                onClick={onClose}
+                className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
               >
-                {selectedCategory && !pinnedCategories.includes(selectedCategory)
-                  ? `${CATEGORY_MAP[selectedCategory].emoji} ${CATEGORY_MAP[selectedCategory].label}`
-                  : '＋ Więcej'}
+                Anuluj
               </button>
             </div>
-            {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category.message}</p>}
-          </div>
-
-          {/* Opis */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Opis</label>
-            <textarea
-              {...register('description')}
-              rows={2}
-              className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              placeholder="Dodaj szczegóły..."
-            />
-          </div>
-
-          {/* Miejsce */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Nazwa miejsca</label>
-            <input
-              {...register('location_name')}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              placeholder="np. Park Łazienkowski, wejście główne"
-            />
-          </div>
-
-          {/* Czas */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Kiedy? *</label>
-            <input
-              {...register('scheduled_at')}
-              type="datetime-local"
-              min={toLocalDateTimeString(new Date(Date.now() + 5 * 60 * 1000))}
-              max={toLocalDateTimeString(maxDate)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-            {errors.scheduled_at && <p className="mt-1 text-xs text-red-500">{errors.scheduled_at.message}</p>}
-          </div>
-
-          {/* Liczba osób */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Liczba osób *</label>
-            <input
-              {...register('max_participants')}
-              type="number"
-              min={2}
-              max={50}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-            {errors.max_participants && <p className="mt-1 text-xs text-red-500">{errors.max_participants.message}</p>}
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <button
-              type="submit"
-              disabled={create.isPending || isAtLimit}
-              className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
-            >
-              {create.isPending ? 'Dodawanie...' : 'Dodaj na mapę'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
-            >
-              Anuluj
-            </button>
-          </div>
-        </form>
-      </div></div>
+          </form>
+        </div>
+      </div>
     </>
   )
 }
