@@ -11,6 +11,7 @@ export interface UserActivity {
   category: ActivityCategory
   scheduled_at: string
   role: 'organizer' | 'participant'
+  organizer_id: string
 }
 
 export interface MyActivitiesResult {
@@ -27,11 +28,10 @@ export function useMyActivities(userId: string | null) {
     queryFn: async (): Promise<MyActivitiesResult> => {
       const cutoff = new Date(Date.now() - TWO_HOURS_MS).toISOString()
 
-      // Delete expired activities organized by this user
+      // Delete all expired activities (older than 2h)
       await supabase
         .from('activities')
         .delete()
-        .eq('organizer_id', userId!)
         .lte('scheduled_at', cutoff)
 
       // Fetch organized activities
@@ -47,6 +47,7 @@ export function useMyActivities(userId: string | null) {
         ...a,
         category: a.category as ActivityCategory,
         role: 'organizer' as const,
+        organizer_id: userId!,
       }))
 
       // Fetch participations
@@ -66,7 +67,7 @@ export function useMyActivities(userId: string | null) {
         if (joinedOnlyIds.length > 0) {
           const { data: joined } = await supabase
             .from('activities')
-            .select('id, title, category, scheduled_at')
+            .select('id, title, category, scheduled_at, organizer_id')
             .in('id', joinedOnlyIds)
             .in('status', ['open', 'full', 'active'])
             .gt('scheduled_at', cutoff)

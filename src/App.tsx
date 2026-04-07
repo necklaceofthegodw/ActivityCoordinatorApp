@@ -73,7 +73,7 @@ function MapPage() {
         {myActivities.map((activity) => (
           <button
             key={activity.id}
-            onClick={() => setChatActivity({ id: activity.id, title: activity.title, category: activity.category } as Activity)}
+            onClick={() => setChatActivity({ id: activity.id, title: activity.title, category: activity.category, organizer_id: activity.organizer_id } as Activity)}
             className="flex items-center gap-2 rounded-full bg-white py-2 pl-2.5 pr-3 shadow-md transition hover:bg-gray-50 active:scale-95"
           >
             <span className="text-base leading-none">{CATEGORY_MAP[activity.category].emoji}</span>
