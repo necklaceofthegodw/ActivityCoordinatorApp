@@ -76,6 +76,17 @@ function RecenterOnLocation({ lat, lng }: { lat: number; lng: number }) {
   return null
 }
 
+// Centers the pin in the top 1/3 of the screen (visible area above the sheet)
+function RecenterOnPin({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap()
+  const zoom = map.getZoom()
+  const mapH = map.getSize().y
+  const pinPx = map.project([lat, lng], zoom)
+  const centerPx = L.point(pinPx.x, pinPx.y + mapH / 3)
+  map.setView(map.unproject(centerPx, zoom), zoom, { animate: true })
+  return null
+}
+
 function MapClickHandler({
   isPickingLocation,
   onPick,
@@ -196,7 +207,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
         )}
 
         {focusLocation && (
-          <RecenterOnLocation lat={focusLocation.lat} lng={focusLocation.lng} />
+          <RecenterOnPin lat={focusLocation.lat} lng={focusLocation.lng} />
         )}
 
         <MapClickHandler
