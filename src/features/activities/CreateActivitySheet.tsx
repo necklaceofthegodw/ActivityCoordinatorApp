@@ -31,6 +31,21 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+function buildLocationName(data: {
+  name?: string
+  address?: Record<string, string>
+}): string {
+  const { name, address = {} } = data
+
+  // Named POI (park, cafe, landmark, etc.) — skip if it looks like just a road name
+  if (name && !address.road?.startsWith(name)) return name
+
+  // Fallback: street + number, city
+  const street = [address.road, address.house_number].filter(Boolean).join(' ')
+  const city = address.city ?? address.town ?? address.village ?? address.county ?? ''
+  return [street, city].filter(Boolean).join(', ')
+}
+
 const SNAP_COLLAPSED = 2 / 3
 const SNAP_EXPANDED = 0.92
 
@@ -50,11 +65,33 @@ interface Props {
 export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtLimit }: Props) {
   const create = useCreateActivity()
   const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false)
+  const [isGeocodingLocation, setIsGeocodingLocation] = useState(true)
   const sheetRef = useRef<HTMLDivElement>(null)
   const dragState = useRef<{ startY: number; startHeight: number } | null>(null)
 
   useBackButton(true, onClose)
   useBackButton(isCategoryPickerOpen, () => setIsCategoryPickerOpen(false))
+
+  // Reverse geocode pin location
+  useEffect(() => {
+    let cancelled = false
+    setIsGeocodingLocation(true)
+
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pl`,
+      { headers: { 'Accept-Language': 'pl' } }
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        const name = buildLocationName(data)
+        if (name) setValue('location_name', name)
+      })
+      .catch(() => { /* leave field empty on error */ })
+      .finally(() => { if (!cancelled) setIsGeocodingLocation(false) })
+
+    return () => { cancelled = true }
+  }, [lat, lng])
 
   // Set initial height in px so drag calculations work
   useEffect(() => {
@@ -255,12 +292,20 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
 
             {/* Miejsce */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Nazwa miejsca</label>
-              <input
-                {...register('location_name')}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                placeholder="np. Park Łazienkowski, wejście główne"
-              />
+              <label className="mb-1 block text-sm font-medium text-gray-700">Lokalizacja</label>
+              <div className="relative">
+                <input
+                  {...register('location_name')}
+                  readOnly
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none"
+                  placeholder="Pobieranie lokalizacji..."
+                />
+                {isGeocodingLocation && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Czas */}

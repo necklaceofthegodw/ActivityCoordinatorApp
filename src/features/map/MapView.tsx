@@ -135,9 +135,10 @@ interface Props {
   onCreateActivity: (latlng: LatLng) => void
   pinnedCategories: ActivityCategory[]
   onPinnedChange: (pinned: ActivityCategory[]) => void
+  focusLocation?: LatLng | null
 }
 
-export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, onPinnedChange }: Props) {
+export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, onPinnedChange, focusLocation }: Props) {
   const { location, isLoading } = useUserLocation()
   const [radiusKm, setRadiusKm] = useState(5)
   const [categories, setCategories] = useState<ActivityCategory[]>([])
@@ -192,6 +193,10 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
 
         {!hasRecentered && (
           <RecenterOnLocation lat={location.lat} lng={location.lng} />
+        )}
+
+        {focusLocation && (
+          <RecenterOnLocation lat={focusLocation.lat} lng={focusLocation.lng} />
         )}
 
         <MapClickHandler

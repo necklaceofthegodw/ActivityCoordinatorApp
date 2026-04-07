@@ -39,6 +39,7 @@ function MapPage() {
         onCreateActivity={setCreateLocation}
         pinnedCategories={pinnedCategories}
         onPinnedChange={setPinnedCategories}
+        focusLocation={createLocation}
       />
 
       <ActivitySheet
