@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import type { Database } from '@/lib/database.types'
@@ -11,6 +11,8 @@ export function useChat(activityId: string) {
   const [messages, setMessages] = useState<Message[]>([])
   const [senderProfiles, setSenderProfiles] = useState<Map<string, Profile>>(new Map())
   const [isLoading, setIsLoading] = useState(true)
+  const [isActivityDeleted, setIsActivityDeleted] = useState(false)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchProfiles = useCallback(async (userIds: string[]) => {
     const missing = userIds.filter((id) => !senderProfiles.has(id))
@@ -93,5 +95,24 @@ export function useChat(activityId: string) {
     await fetchMessages()
   }
 
-  return { messages, isLoading, sendMessage, senderProfiles }
+  useEffect(() => {
+    intervalRef.current = setInterval(async () => {
+      const { data } = await supabase
+        .from('activities')
+        .select('id')
+        .eq('id', activityId)
+        .maybeSingle()
+
+      if (data === null) {
+        setIsActivityDeleted(true)
+        if (intervalRef.current) clearInterval(intervalRef.current)
+      }
+    }, 5_000)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [activityId])
+
+  return { messages, isLoading, sendMessage, senderProfiles, isActivityDeleted }
 }

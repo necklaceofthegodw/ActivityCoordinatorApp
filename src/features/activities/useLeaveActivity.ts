@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
+import type { MyActivitiesResult } from './useMyActivities'
 
 export function useLeaveActivity() {
   const queryClient = useQueryClient()
@@ -19,6 +20,27 @@ export function useLeaveActivity() {
 
       if (error) throw error
     },
+    onMutate: async (activityId) => {
+      if (!user) return
+
+      await queryClient.cancelQueries({ queryKey: ['my-activities', user.id] })
+
+      const previous = queryClient.getQueryData<MyActivitiesResult>(['my-activities', user.id])
+
+      queryClient.setQueryData<MyActivitiesResult>(['my-activities', user.id], (old) => {
+        if (!old) return old
+        const activities = old.activities.filter((a) => a.id !== activityId)
+        return { activities, isAtLimit: activities.length >= 3 }
+      })
+
+      return { previous }
+    },
+    onError: (err: Error, _activityId, context) => {
+      if (context?.previous && user) {
+        queryClient.setQueryData(['my-activities', user.id], context.previous)
+      }
+      toast.error(err.message)
+    },
     onSuccess: (_data, activityId) => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
       queryClient.invalidateQueries({ queryKey: ['participant-status', activityId] })
@@ -26,9 +48,6 @@ export function useLeaveActivity() {
       queryClient.invalidateQueries({ queryKey: ['my-activities'] })
       queryClient.invalidateQueries({ queryKey: ['my-joined-ids'] })
       toast.success('Opuściłeś aktywność')
-    },
-    onError: (err: Error) => {
-      toast.error(err.message)
     },
   })
 }

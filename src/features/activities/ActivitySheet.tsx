@@ -2,6 +2,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import type { Database } from '@/lib/database.types'
 import { useJoinActivity } from './useJoinActivity'
 import { useLeaveActivity } from './useLeaveActivity'
+import { useDeleteActivity } from './useDeleteActivity'
 import { useParticipantStatus } from './useParticipantStatus'
 import { useProfile } from '@/features/profile/useProfile'
 import { getTierInfo } from '@/lib/tiers'
@@ -21,6 +22,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
   const { user } = useAuth()
   const join = useJoinActivity()
   const leave = useLeaveActivity()
+  const deleteActivity = useDeleteActivity()
   const { data: isParticipant } = useParticipantStatus(activity?.id ?? null)
   const { data: organizerProfile } = useProfile(activity?.organizer_id ?? null)
 
@@ -129,7 +131,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
               </button>
             ) : (
               <button
-                onClick={() => join.mutate(activity.id)}
+                onClick={() => join.mutate({ activityId: activity.id, title: activity.title, category: activity.category, scheduled_at: activity.scheduled_at })}
                 disabled={join.isPending}
                 className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
               >
@@ -152,6 +154,17 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
               className="w-full rounded-xl border border-red-200 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-50 disabled:opacity-60"
             >
               {leave.isPending ? 'Opuszczanie...' : 'Opuść aktywność'}
+            </button>
+          )}
+
+          {/* Anuluj — tylko dla organizatora */}
+          {isOrganizer && (
+            <button
+              onClick={() => { deleteActivity.mutate(activity.id); onClose() }}
+              disabled={deleteActivity.isPending}
+              className="w-full rounded-xl border border-red-200 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-50 disabled:opacity-60"
+            >
+              {deleteActivity.isPending ? 'Anulowanie...' : 'Anuluj aktywność'}
             </button>
           )}
         </div>

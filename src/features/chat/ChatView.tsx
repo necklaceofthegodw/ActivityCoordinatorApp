@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { useChat } from './useChat'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { FlappyBird } from '@/features/game/FlappyBird'
@@ -21,7 +22,8 @@ interface Props {
 
 export function ChatView({ activity, onClose }: Props) {
   const { user } = useAuth()
-  const { messages, isLoading, sendMessage, senderProfiles } = useChat(activity.id)
+  const queryClient = useQueryClient()
+  const { messages, isLoading, sendMessage, senderProfiles, isActivityDeleted } = useChat(activity.id)
   const [input, setInput] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('chat')
   const [isSending, setIsSending] = useState(false)
@@ -38,6 +40,12 @@ export function ChatView({ activity, onClose }: Props) {
   const isHost = activity.organizer_id === user?.id
 
   useBackButton(true, onClose)
+
+  useEffect(() => {
+    if (!isActivityDeleted) return
+    queryClient.invalidateQueries({ queryKey: ['my-activities'] })
+    if (isHost) onClose()
+  }, [isActivityDeleted])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -330,6 +338,20 @@ export function ChatView({ activity, onClose }: Props) {
           </>
         )}
       </div>
+
+      {isActivityDeleted && !isHost && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white px-6 text-center">
+          <span className="text-5xl">🚫</span>
+          <p className="text-base font-semibold text-gray-900">Aktywność została anulowana</p>
+          <p className="text-sm text-gray-500">Organizator usunął tę aktywność.</p>
+          <button
+            onClick={onClose}
+            className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white"
+          >
+            Wróć
+          </button>
+        </div>
+      )}
 
       {viewingProfile && (
         <ProfilePage

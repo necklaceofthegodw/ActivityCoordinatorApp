@@ -58,21 +58,26 @@ export function useMyActivities(userId: string | null) {
       let joinedActivities: UserActivity[] = []
 
       if (participations?.length) {
-        const activityIds = participations.map((p) => p.activity_id)
+        const organizedIds = new Set(organizedActivities.map((a) => a.id))
+        const joinedOnlyIds = participations
+          .map((p) => p.activity_id)
+          .filter((id) => !organizedIds.has(id))
 
-        const { data: joined } = await supabase
-          .from('activities')
-          .select('id, title, category, scheduled_at')
-          .in('id', activityIds)
-          .in('status', ['open', 'full', 'active'])
-          .gt('scheduled_at', cutoff)
-          .order('scheduled_at', { ascending: true })
+        if (joinedOnlyIds.length > 0) {
+          const { data: joined } = await supabase
+            .from('activities')
+            .select('id, title, category, scheduled_at')
+            .in('id', joinedOnlyIds)
+            .in('status', ['open', 'full', 'active'])
+            .gt('scheduled_at', cutoff)
+            .order('scheduled_at', { ascending: true })
 
-        joinedActivities = (joined ?? []).map((a) => ({
-          ...a,
-          category: a.category as ActivityCategory,
-          role: 'participant' as const,
-        }))
+          joinedActivities = (joined ?? []).map((a) => ({
+            ...a,
+            category: a.category as ActivityCategory,
+            role: 'participant' as const,
+          }))
+        }
       }
 
       const all = [...organizedActivities, ...joinedActivities]

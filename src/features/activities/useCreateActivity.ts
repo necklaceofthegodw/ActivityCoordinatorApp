@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import type { ActivityCategory } from '@/lib/database.types'
+import type { MyActivitiesResult } from './useMyActivities'
 
 export interface CreateActivityInput {
   title: string
@@ -36,13 +37,34 @@ export function useCreateActivity() {
 
       if (error) throw error
     },
+    onMutate: async ({ title, category, scheduled_at }) => {
+      if (!user) return
+
+      await queryClient.cancelQueries({ queryKey: ['my-activities', user.id] })
+
+      const previous = queryClient.getQueryData<MyActivitiesResult>(['my-activities', user.id])
+
+      const tempId = `temp-${Date.now()}`
+
+      queryClient.setQueryData<MyActivitiesResult>(['my-activities', user.id], (old) => {
+        const optimistic = { id: tempId, title, category, scheduled_at, role: 'organizer' as const }
+        if (!old) return { activities: [optimistic], isAtLimit: true }
+        const activities = [...old.activities, optimistic].slice(0, 3)
+        return { activities, isAtLimit: activities.length >= 3 }
+      })
+
+      return { previous }
+    },
+    onError: (err: Error, _input, context) => {
+      if (context?.previous && user) {
+        queryClient.setQueryData(['my-activities', user.id], context.previous)
+      }
+      toast.error(err.message)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
       queryClient.invalidateQueries({ queryKey: ['my-activities'] })
       toast.success('Aktywność została dodana na mapę!')
-    },
-    onError: (err: Error) => {
-      toast.error(err.message)
     },
   })
 }
