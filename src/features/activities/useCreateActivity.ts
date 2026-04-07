@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import type { ActivityCategory } from '@/lib/database.types'
-import type { MyActivitiesResult } from './useMyActivities'
+import type { MyActivitiesResult, UserActivity } from './useMyActivities'
 
 export interface CreateActivityInput {
   title: string
@@ -47,7 +47,7 @@ export function useCreateActivity() {
       const tempId = `temp-${Date.now()}`
 
       queryClient.setQueryData<MyActivitiesResult>(['my-activities', user.id], (old) => {
-        const optimistic = { id: tempId, title, category, scheduled_at, role: 'organizer' as const }
+        const optimistic: UserActivity = { id: tempId, title, category, scheduled_at, role: 'organizer', organizer_id: user.id }
         if (!old) return { activities: [optimistic], isAtLimit: true }
         const activities = [...old.activities, optimistic].slice(0, 3)
         return { activities, isAtLimit: activities.length >= 3 }

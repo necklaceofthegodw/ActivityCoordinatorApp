@@ -33,7 +33,7 @@ export function useJoinActivity() {
 
       const previous = queryClient.getQueryData<MyActivitiesResult>(['my-activities', user.id])
 
-      const optimistic: UserActivity = { id: activityId, title, category, scheduled_at, role: 'participant' }
+      const optimistic: UserActivity = { id: activityId, title, category, scheduled_at, role: 'participant', organizer_id: '' }
 
       queryClient.setQueryData<MyActivitiesResult>(['my-activities', user.id], (old) => {
         if (!old) return { activities: [optimistic], isAtLimit: true }
