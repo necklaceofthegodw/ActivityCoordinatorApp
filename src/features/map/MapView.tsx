@@ -91,15 +91,20 @@ function RecenterOnPin({ lat, lng }: { lat: number; lng: number }) {
 function MapClickHandler({
   isPickingLocation,
   onPick,
+  onMoved,
 }: {
   isPickingLocation: boolean
   onPick: (latlng: LatLng) => void
+  onMoved: () => void
 }) {
   const map = useMapEvents({
     click(e) {
       if (isPickingLocation) {
         onPick({ lat: e.latlng.lat, lng: e.latlng.lng })
       }
+    },
+    dragstart() {
+      onMoved()
     },
   })
 
@@ -214,6 +219,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
         <MapClickHandler
           isPickingLocation={isPickingLocation}
           onPick={handleMapPick}
+          onMoved={() => setHasRecentered(true)}
         />
 
         {/* User location */}
