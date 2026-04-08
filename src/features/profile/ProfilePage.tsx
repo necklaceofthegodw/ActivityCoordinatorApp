@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -31,6 +31,11 @@ export function ProfilePage({ userId, onClose }: Props) {
   const [isEditing, setIsEditing] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
+
+  useEffect(() => {
+    setAvatarError(false)
+  }, [profile?.avatar_url])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { signOut } = useAuth()
@@ -134,11 +139,12 @@ export function ProfilePage({ userId, onClose }: Props) {
         <div className="flex flex-col items-center px-4 py-6">
           {/* Avatar */}
           <div className="relative mb-3">
-            {profile.avatar_url ? (
+            {profile.avatar_url && !avatarError ? (
               <img
                 src={profile.avatar_url}
                 alt={profile.nickname}
                 className="h-24 w-24 rounded-full object-cover"
+                onError={() => setAvatarError(true)}
               />
             ) : (
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-100 text-3xl font-bold text-blue-600">
