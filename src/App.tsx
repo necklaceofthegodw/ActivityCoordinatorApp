@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider'
 import LoginPage from '@/features/auth/LoginPage'
@@ -29,6 +30,7 @@ function ActivityLinkRoute() {
 
 function MapPage() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [createLocation, setCreateLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [pinnedCategories, setPinnedCategories] = useState<ActivityCategory[]>(['walk', 'coffee', 'squash', 'running', 'language'])
@@ -42,14 +44,24 @@ function MapPage() {
     if (id) sessionStorage.removeItem('pendingActivityId')
     return id
   })
+  const [pendingFocusLocation, setPendingFocusLocation] = useState<{ lat: number; lng: number } | null>(null)
 
   const { data: pendingActivity } = useActivityById(pendingActivityId)
 
   useEffect(() => {
     if (!pendingActivity) return
     setSelectedActivity(pendingActivity)
+    setPendingFocusLocation({ lat: pendingActivity.lat, lng: pendingActivity.lng })
     setPendingActivityId(null)
+    queryClient.invalidateQueries({ queryKey: ['my-activities'] })
   }, [pendingActivity])
+
+  // Clear focus after one render so user can pan freely
+  useEffect(() => {
+    if (!pendingFocusLocation) return
+    const t = setTimeout(() => setPendingFocusLocation(null), 100)
+    return () => clearTimeout(t)
+  }, [pendingFocusLocation])
 
   function handleChatOpen(activityId: string) {
     if (selectedActivity?.id === activityId) {
@@ -65,12 +77,12 @@ function MapPage() {
         onCreateActivity={setCreateLocation}
         pinnedCategories={pinnedCategories}
         onPinnedChange={setPinnedCategories}
-        focusLocation={createLocation}
+        focusLocation={createLocation ?? pendingFocusLocation}
       />
 
       <ActivitySheet
         activity={selectedActivity}
-        onClose={() => setSelectedActivity(null)}
+        onClose={() => { setSelectedActivity(null); setPendingFocusLocation(null) }}
         onChatOpen={handleChatOpen}
         isAtLimit={isAtLimit}
       />
