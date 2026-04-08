@@ -10,6 +10,7 @@ import { useLeaveActivity } from '@/features/activities/useLeaveActivity'
 import { useDeleteActivity } from '@/features/activities/useDeleteActivity'
 import { useUpdateActivityDescription } from '@/features/activities/useUpdateActivityDescription'
 import { useParticipants } from '@/features/activities/useParticipants'
+import { useActivityById } from '@/features/activities/useActivityById'
 import { CATEGORY_MAP } from '@/lib/categories'
 import type { Database } from '@/lib/database.types'
 
@@ -38,10 +39,16 @@ export function ChatView({ activity, onClose }: Props) {
   const deleteActivity = useDeleteActivity()
   const updateDesc = useUpdateActivityDescription()
   const { data: participants = [] } = useParticipants(activity.id)
+  const { data: fullActivity } = useActivityById(activity.id)
+  const act = fullActivity ?? activity
 
   const isHost = activity.organizer_id === user?.id
 
   useBackButton(true, onClose)
+
+  useEffect(() => {
+    if (fullActivity?.description !== undefined) setDesc(fullActivity.description ?? '')
+  }, [fullActivity?.description])
 
   useEffect(() => {
     if (!isActivityDeleted) return
@@ -88,8 +95,8 @@ export function ChatView({ activity, onClose }: Props) {
     }
   }
 
-  const cat = CATEGORY_MAP[activity.category]
-  const scheduledAt = activity.scheduled_at ? new Date(activity.scheduled_at) : null
+  const cat = CATEGORY_MAP[act.category]
+  const scheduledAt = act.scheduled_at ? new Date(act.scheduled_at) : null
 
   return (
     <>
@@ -159,22 +166,22 @@ export function ChatView({ activity, onClose }: Props) {
         {activeTab === 'settings' && (
           <div className="border-b border-gray-100 p-4">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-              Uczestnicy ({activity.current_participants}/{activity.max_participants})
+              Uczestnicy ({act.current_participants}/{act.max_participants})
             </p>
             <div className="space-y-2">
               {/* Organizer */}
               <button
-                onClick={() => setViewingProfile(activity.organizer_id)}
+                onClick={() => setViewingProfile(act.organizer_id)}
                 className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition hover:bg-gray-50"
               >
-                {activity.organizer_avatar_url ? (
-                  <img src={activity.organizer_avatar_url} alt={activity.organizer_nickname} className="h-8 w-8 rounded-full object-cover" />
+                {act.organizer_avatar_url ? (
+                  <img src={act.organizer_avatar_url} alt={act.organizer_nickname} className="h-8 w-8 rounded-full object-cover" />
                 ) : (
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600">
-                    {activity.organizer_nickname?.[0]?.toUpperCase() ?? '?'}
+                    {act.organizer_nickname?.[0]?.toUpperCase() ?? '…'}
                   </div>
                 )}
-                <span className="flex-1 text-sm font-medium text-gray-800">{activity.organizer_nickname}</span>
+                <span className="flex-1 text-sm font-medium text-gray-800">{act.organizer_nickname}</span>
                 <span className="text-xs text-blue-600 font-medium">Organizator</span>
               </button>
 
@@ -200,10 +207,10 @@ export function ChatView({ activity, onClose }: Props) {
         )}
 
         {/* Settings tab — location link */}
-        {activeTab === 'settings' && activity.location_name && (
+        {activeTab === 'settings' && act.location_name && (
           <div className="border-b border-gray-100 px-4 py-3">
             <a
-              href={`https://www.google.com/maps?q=${activity.lat},${activity.lng}`}
+              href={`https://www.google.com/maps?q=${act.lat},${act.lng}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
@@ -212,13 +219,13 @@ export function ChatView({ activity, onClose }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              {activity.location_name}
+              {act.location_name}
             </a>
           </div>
         )}
 
         {/* Settings tab — copy link (private activities, all members) */}
-        {activeTab === 'settings' && activity.is_private && (
+        {activeTab === 'settings' && act.is_private && (
           <div className="border-b border-gray-100 p-4">
             <button
               onClick={() => {
@@ -338,7 +345,7 @@ export function ChatView({ activity, onClose }: Props) {
                 )}
               </div>
               <span className="shrink-0 text-xs text-gray-500">
-                👥 {activity.current_participants}/{activity.max_participants}
+                👥 {act.current_participants}/{act.max_participants}
               </span>
             </div>
 
