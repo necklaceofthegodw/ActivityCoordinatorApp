@@ -150,6 +150,21 @@ export function ChatView({ activity, onClose }: Props) {
           </div>
         )}
 
+        {/* Settings tab — copy link (private activities, all members) */}
+        {activeTab === 'settings' && activity.is_private && (
+          <div className="border-b border-gray-100 p-4">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/activity/${activity.id}`)
+                toast.success('Link skopiowany do schowka')
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 py-3 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+            >
+              🔗 Skopiuj link zaproszenia
+            </button>
+          </div>
+        )}
+
         {/* Settings tab — host */}
         {activeTab === 'settings' && isHost && (
           <div className="flex-1 overflow-y-auto p-4 space-y-6">

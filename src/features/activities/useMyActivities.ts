@@ -12,6 +12,7 @@ export interface UserActivity {
   scheduled_at: string
   role: 'organizer' | 'participant'
   organizer_id: string
+  is_private: boolean
 }
 
 export interface MyActivitiesResult {
@@ -37,7 +38,7 @@ export function useMyActivities(userId: string | null) {
       // Fetch organized activities
       const { data: organized } = await supabase
         .from('activities')
-        .select('id, title, category, scheduled_at')
+        .select('id, title, category, scheduled_at, is_private')
         .eq('organizer_id', userId!)
         .in('status', ['open', 'full', 'active'])
         .gt('scheduled_at', cutoff)
@@ -67,7 +68,7 @@ export function useMyActivities(userId: string | null) {
         if (joinedOnlyIds.length > 0) {
           const { data: joined } = await supabase
             .from('activities')
-            .select('id, title, category, scheduled_at, organizer_id')
+            .select('id, title, category, scheduled_at, organizer_id, is_private')
             .in('id', joinedOnlyIds)
             .in('status', ['open', 'full', 'active'])
             .gt('scheduled_at', cutoff)

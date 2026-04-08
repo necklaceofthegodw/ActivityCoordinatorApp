@@ -57,6 +57,7 @@ export type Database = {
           current_participants: number
           status: Database['public']['Enums']['activity_status']
           created_at: string
+          is_private: boolean
         }
         Insert: {
           organizer_id: string
@@ -67,6 +68,7 @@ export type Database = {
           location_name?: string | null
           scheduled_at: string
           max_participants: number
+          is_private?: boolean
         }
         Update: {
           status?: Database['public']['Enums']['activity_status']
@@ -166,6 +168,28 @@ export type Database = {
           lng: number
           organizer_nickname: string
           organizer_avatar_url: string | null
+          is_private: boolean
+        }>
+      }
+      get_activity_by_id: {
+        Args: { p_activity_id: string }
+        Returns: Array<{
+          id: string
+          organizer_id: string
+          title: string
+          description: string | null
+          category: Database['public']['Enums']['activity_category']
+          location_name: string | null
+          scheduled_at: string
+          max_participants: number
+          current_participants: number
+          status: Database['public']['Enums']['activity_status']
+          created_at: string
+          lat: number
+          lng: number
+          organizer_nickname: string
+          organizer_avatar_url: string | null
+          is_private: boolean
         }>
       }
       is_activity_member: {

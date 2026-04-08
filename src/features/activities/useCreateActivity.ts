@@ -14,6 +14,7 @@ export interface CreateActivityInput {
   lng: number
   scheduled_at: string
   max_participants: number
+  is_private: boolean
 }
 
 export function useCreateActivity() {
@@ -33,11 +34,12 @@ export function useCreateActivity() {
         location_name: input.location_name || null,
         scheduled_at: input.scheduled_at,
         max_participants: input.max_participants,
+        is_private: input.is_private,
       })
 
       if (error) throw error
     },
-    onMutate: async ({ title, category, scheduled_at }) => {
+    onMutate: async ({ title, category, scheduled_at, is_private }) => {
       if (!user) return
 
       await queryClient.cancelQueries({ queryKey: ['my-activities', user.id] })
@@ -47,7 +49,7 @@ export function useCreateActivity() {
       const tempId = `temp-${Date.now()}`
 
       queryClient.setQueryData<MyActivitiesResult>(['my-activities', user.id], (old) => {
-        const optimistic: UserActivity = { id: tempId, title, category, scheduled_at, role: 'organizer', organizer_id: user.id }
+        const optimistic: UserActivity = { id: tempId, title, category, scheduled_at, role: 'organizer', organizer_id: user.id, is_private }
         if (!old) return { activities: [optimistic], isAtLimit: true }
         const activities = [...old.activities, optimistic].slice(0, 3)
         return { activities, isAtLimit: activities.length >= 3 }
@@ -61,10 +63,10 @@ export function useCreateActivity() {
       }
       toast.error(err.message)
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
       queryClient.invalidateQueries({ queryKey: ['my-activities'] })
-      toast.success('Aktywność została dodana na mapę!')
+      toast.success(variables.is_private ? 'Prywatna aktywność została utworzona!' : 'Aktywność została dodana na mapę!')
     },
   })
 }

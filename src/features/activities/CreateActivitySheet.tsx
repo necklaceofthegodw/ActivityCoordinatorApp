@@ -27,6 +27,7 @@ const schema = z.object({
     return d > now && d <= maxDate
   }, 'Czas musi być w ciągu najbliższych 48h'),
   max_participants: z.coerce.number().int().min(2).max(50),
+  is_private: z.boolean(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -132,10 +133,12 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
       category: pinnedCategories[0] ?? 'walk',
       max_participants: 4,
       scheduled_at: toLocalDateTimeString(new Date(Date.now() + 60 * 60 * 1000)),
+      is_private: false,
     },
   })
 
   const selectedCategory = watch('category')
+  const isPrivate = watch('is_private')
 
   useEffect(() => {
     function scrollActiveIntoView() {
@@ -157,6 +160,10 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
       lng,
     })
     onClose()
+  }
+
+  function handlePrivateToggle() {
+    setValue('is_private', !isPrivate)
   }
 
   return (
@@ -334,13 +341,28 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
               {errors.max_participants && <p className="mt-1 text-xs text-red-500">{errors.max_participants.message}</p>}
             </div>
 
+            {/* Prywatność */}
+            <button
+              type="button"
+              onClick={handlePrivateToggle}
+              className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-left transition hover:bg-gray-50"
+            >
+              <div>
+                <p className="text-sm font-medium text-gray-800">Prywatna aktywność</p>
+                <p className="text-xs text-gray-400">Nie pojawi się na mapie — udostępniaj przez link</p>
+              </div>
+              <div className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${isPrivate ? 'bg-blue-600' : 'bg-gray-200'}`}>
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isPrivate ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </div>
+            </button>
+
             <div className="flex gap-2 pt-1">
               <button
                 type="submit"
                 disabled={create.isPending || isAtLimit}
                 className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
               >
-                {create.isPending ? 'Dodawanie...' : 'Dodaj na mapę'}
+                {create.isPending ? 'Dodawanie...' : isPrivate ? 'Utwórz prywatną' : 'Dodaj na mapę'}
               </button>
               <button
                 type="button"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider'
 import LoginPage from '@/features/auth/LoginPage'
 import ProfileSetupPage from '@/features/auth/ProfileSetupPage'
@@ -10,9 +10,22 @@ import { ChatView } from '@/features/chat/ChatView'
 import { ProfilePage } from '@/features/profile/ProfilePage'
 import type { ActivityCategory, Database } from '@/lib/database.types'
 import { useMyActivities } from '@/features/activities/useMyActivities'
+import { useActivityById } from '@/features/activities/useActivityById'
 import { CATEGORY_MAP } from '@/lib/categories'
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
+
+// Saves the activity ID from /activity/:id links and redirects appropriately
+function ActivityLinkRoute() {
+  const { id } = useParams<{ id: string }>()
+  const { session, profile } = useAuth()
+
+  if (id) sessionStorage.setItem('pendingActivityId', id)
+
+  if (!session) return <Navigate to="/login" replace />
+  if (!profile) return <Navigate to="/setup" replace />
+  return <Navigate to="/" replace />
+}
 
 function MapPage() {
   const { user } = useAuth()
@@ -24,6 +37,19 @@ function MapPage() {
   const isAtLimit = myActivitiesResult?.isAtLimit ?? false
   const [chatActivity, setChatActivity] = useState<Activity | null>(null)
   const [showProfile, setShowProfile] = useState(false)
+  const [pendingActivityId, setPendingActivityId] = useState<string | null>(() => {
+    const id = sessionStorage.getItem('pendingActivityId')
+    if (id) sessionStorage.removeItem('pendingActivityId')
+    return id
+  })
+
+  const { data: pendingActivity } = useActivityById(pendingActivityId)
+
+  useEffect(() => {
+    if (!pendingActivity) return
+    setSelectedActivity(pendingActivity)
+    setPendingActivityId(null)
+  }, [pendingActivity])
 
   function handleChatOpen(activityId: string) {
     if (selectedActivity?.id === activityId) {
@@ -74,10 +100,10 @@ function MapPage() {
         {myActivities.map((activity) => (
           <button
             key={activity.id}
-            onClick={() => setChatActivity({ id: activity.id, title: activity.title, category: activity.category, organizer_id: activity.organizer_id } as Activity)}
+            onClick={() => setChatActivity({ id: activity.id, title: activity.title, category: activity.category, organizer_id: activity.organizer_id, is_private: activity.is_private } as Activity)}
             className="flex items-center gap-2 rounded-full bg-white py-2 pl-2.5 pr-3 shadow-md transition hover:bg-gray-50 active:scale-95"
           >
-            <span className="text-base leading-none">{CATEGORY_MAP[activity.category].emoji}</span>
+            <span className="text-base leading-none">{activity.is_private ? '🔒' : CATEGORY_MAP[activity.category].emoji}</span>
             <span className="max-w-[120px] truncate text-xs font-medium text-gray-800">{activity.title}</span>
           </button>
         ))}
@@ -115,6 +141,7 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/activity/:id" element={<ActivityLinkRoute />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     )
@@ -124,6 +151,7 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/setup" element={<ProfileSetupPage />} />
+        <Route path="/activity/:id" element={<ActivityLinkRoute />} />
         <Route path="*" element={<Navigate to="/setup" replace />} />
       </Routes>
     )
@@ -132,6 +160,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<MapPage />} />
+      <Route path="/activity/:id" element={<ActivityLinkRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
