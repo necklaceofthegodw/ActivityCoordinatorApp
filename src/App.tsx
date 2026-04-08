@@ -63,6 +63,11 @@ function MapPage() {
     return () => clearTimeout(t)
   }, [pendingFocusLocation])
 
+  function handleActivitySelect(activity: Activity) {
+    setSelectedActivity(activity)
+    setPendingFocusLocation({ lat: activity.lat, lng: activity.lng })
+  }
+
   function handleChatOpen(activityId: string) {
     if (selectedActivity?.id === activityId) {
       setChatActivity(selectedActivity)
@@ -73,7 +78,7 @@ function MapPage() {
   return (
     <div className="relative w-screen" style={{ height: 'var(--app-height, 100svh)' }}>
       <MapView
-        onActivitySelect={setSelectedActivity}
+        onActivitySelect={handleActivitySelect}
         onCreateActivity={setCreateLocation}
         pinnedCategories={pinnedCategories}
         onPinnedChange={setPinnedCategories}

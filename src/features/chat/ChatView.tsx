@@ -141,12 +141,10 @@ export function ChatView({ activity, onClose }: Props) {
           <button
             onClick={() => handleTabChange('settings')}
             className={`flex-1 py-2.5 text-sm font-medium transition ${
-              activeTab === 'settings'
-                ? isHost ? 'border-b-2 border-blue-600 text-blue-600' : 'border-b-2 border-red-500 text-red-500'
-                : 'text-gray-500'
+              activeTab === 'settings' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'
             }`}
           >
-            {isHost ? '⚙️ Ustawienia' : '🚪 Opuść'}
+            ⚙️ Ustawienia
           </button>
         </div>
 
