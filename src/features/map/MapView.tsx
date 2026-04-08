@@ -80,11 +80,13 @@ function RecenterOnLocation({ lat, lng }: { lat: number; lng: number }) {
 // Centers the pin in the top 1/3 of the screen (visible area above the sheet)
 function RecenterOnPin({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap()
-  const zoom = map.getZoom()
-  const mapH = map.getSize().y
-  const pinPx = map.project([lat, lng], zoom)
-  const centerPx = L.point(pinPx.x, pinPx.y + mapH / 3)
-  map.setView(map.unproject(centerPx, zoom), zoom, { animate: true })
+  useEffect(() => {
+    const zoom = map.getZoom()
+    const mapH = map.getSize().y
+    const pinPx = map.project([lat, lng], zoom)
+    const centerPx = L.point(pinPx.x, pinPx.y + mapH / 3)
+    map.setView(map.unproject(centerPx, zoom), zoom, { animate: true })
+  }, [lat, lng])
   return null
 }
 

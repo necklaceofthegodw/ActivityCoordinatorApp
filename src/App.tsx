@@ -56,13 +56,6 @@ function MapPage() {
     queryClient.invalidateQueries({ queryKey: ['my-activities'] })
   }, [pendingActivity])
 
-  // Clear focus after one render so user can pan freely
-  useEffect(() => {
-    if (!pendingFocusLocation) return
-    const t = setTimeout(() => setPendingFocusLocation(null), 100)
-    return () => clearTimeout(t)
-  }, [pendingFocusLocation])
-
   function handleActivitySelect(activity: Activity) {
     setSelectedActivity(activity)
     setPendingFocusLocation({ lat: activity.lat, lng: activity.lng })
