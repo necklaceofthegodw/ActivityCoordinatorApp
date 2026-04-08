@@ -61,9 +61,16 @@ AS $$
   JOIN public.profiles p ON p.id = a.organizer_id
   WHERE
     a.status IN ('open', 'full')
-    AND a.is_private = false
     AND ST_DWithin(a.location, ST_MakePoint(lng, lat)::geography, radius_meters)
     AND (category_filter IS NULL OR a.category = ANY(category_filter))
+    AND (
+      a.is_private = false
+      OR a.organizer_id = auth.uid()
+      OR EXISTS (
+        SELECT 1 FROM public.participants pt
+        WHERE pt.activity_id = a.id AND pt.user_id = auth.uid()
+      )
+    )
   ORDER BY a.scheduled_at ASC;
 $$;
 

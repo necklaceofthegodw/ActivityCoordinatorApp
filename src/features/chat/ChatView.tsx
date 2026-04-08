@@ -9,6 +9,7 @@ import { useBackButton } from '@/hooks/useBackButton'
 import { useLeaveActivity } from '@/features/activities/useLeaveActivity'
 import { useDeleteActivity } from '@/features/activities/useDeleteActivity'
 import { useUpdateActivityDescription } from '@/features/activities/useUpdateActivityDescription'
+import { useParticipants } from '@/features/activities/useParticipants'
 import { CATEGORY_MAP } from '@/lib/categories'
 import type { Database } from '@/lib/database.types'
 
@@ -36,6 +37,7 @@ export function ChatView({ activity, onClose }: Props) {
   const leaveActivity = useLeaveActivity()
   const deleteActivity = useDeleteActivity()
   const updateDesc = useUpdateActivityDescription()
+  const { data: participants = [] } = useParticipants(activity.id)
 
   const isHost = activity.organizer_id === user?.id
 
@@ -104,6 +106,11 @@ export function ChatView({ activity, onClose }: Props) {
           </button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-gray-900">{activity.title}</p>
+            {scheduledAt && (
+              <p className="text-xs text-gray-400">
+                {scheduledAt.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
           </div>
           <button
             onClick={() => user && setViewingProfile(user.id)}
@@ -147,6 +154,68 @@ export function ChatView({ activity, onClose }: Props) {
         {activeTab === 'game' && (
           <div className="flex-1 overflow-hidden">
             <FlappyBird />
+          </div>
+        )}
+
+        {/* Settings tab — participants list */}
+        {activeTab === 'settings' && (
+          <div className="border-b border-gray-100 p-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
+              Uczestnicy ({activity.current_participants}/{activity.max_participants})
+            </p>
+            <div className="space-y-2">
+              {/* Organizer */}
+              <button
+                onClick={() => setViewingProfile(activity.organizer_id)}
+                className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition hover:bg-gray-50"
+              >
+                {activity.organizer_avatar_url ? (
+                  <img src={activity.organizer_avatar_url} alt={activity.organizer_nickname} className="h-8 w-8 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600">
+                    {activity.organizer_nickname?.[0]?.toUpperCase() ?? '?'}
+                  </div>
+                )}
+                <span className="flex-1 text-sm font-medium text-gray-800">{activity.organizer_nickname}</span>
+                <span className="text-xs text-blue-600 font-medium">Organizator</span>
+              </button>
+
+              {/* Participants */}
+              {participants.map((p) => (
+                <button
+                  key={p.userId}
+                  onClick={() => setViewingProfile(p.userId)}
+                  className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition hover:bg-gray-50"
+                >
+                  {p.avatarUrl ? (
+                    <img src={p.avatarUrl} alt={p.nickname} className="h-8 w-8 rounded-full object-cover" />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-500">
+                      {p.nickname[0]?.toUpperCase() ?? '?'}
+                    </div>
+                  )}
+                  <span className="text-sm text-gray-800">{p.nickname}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Settings tab — location link */}
+        {activeTab === 'settings' && activity.location_name && (
+          <div className="border-b border-gray-100 px-4 py-3">
+            <a
+              href={`https://www.google.com/maps?q=${activity.lat},${activity.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+            >
+              <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {activity.location_name}
+            </a>
           </div>
         )}
 
