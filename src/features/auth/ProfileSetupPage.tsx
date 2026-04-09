@@ -53,19 +53,20 @@ export default function ProfileSetupPage() {
         let compressedBlob: Blob
         try {
           compressedBlob = await compressImage(avatarFile)
-        } catch {
-          toast.error(t('setup.avatarUploadFail'))
+        } catch (err) {
+          toast.error(t('setup.avatarUploadFail'), { description: err instanceof Error ? err.message : 'compress error' })
           setIsSubmitting(false)
           return
         }
 
         const path = `${user.id}/avatar.jpg`
+        const compressedFile = new File([compressedBlob], 'avatar.jpg', { type: 'image/jpeg' })
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(path, compressedBlob, { upsert: true, contentType: 'image/jpeg' })
+          .upload(path, compressedFile, { upsert: true })
 
         if (uploadError) {
-          toast.error(t('setup.avatarUploadFail'))
+          toast.error(t('setup.avatarUploadFail'), { description: uploadError.message })
         } else {
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')

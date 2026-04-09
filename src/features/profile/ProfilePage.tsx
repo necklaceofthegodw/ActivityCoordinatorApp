@@ -100,17 +100,18 @@ export function ProfilePage({ userId, onClose }: Props) {
     let compressedBlob: Blob
     try {
       compressedBlob = await compressImage(file)
-    } catch {
-      toast.error(t('profile.uploadError'))
+    } catch (err) {
+      toast.error(t('profile.uploadError'), { description: err instanceof Error ? err.message : 'compress error' })
       return
     }
 
     const path = `${user.id}/avatar.jpg`
+    const compressedFile = new File([compressedBlob], 'avatar.jpg', { type: 'image/jpeg' })
     const { error } = await supabase.storage
       .from('avatars')
-      .upload(path, compressedBlob, { upsert: true, contentType: 'image/jpeg' })
+      .upload(path, compressedFile, { upsert: true })
 
-    if (error) { toast.error(t('profile.uploadError')); return }
+    if (error) { toast.error(t('profile.uploadError'), { description: error.message }); return }
 
     const { data: { publicUrl } } = supabase.storage
       .from('avatars')
