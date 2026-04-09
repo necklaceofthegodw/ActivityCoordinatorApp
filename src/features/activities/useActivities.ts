@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import type { ActivityCategory } from '@/lib/database.types'
@@ -32,6 +32,7 @@ export function useActivities({ lat, lng, radiusKm, categories }: UseActivitiesP
   return useQuery({
     queryKey: ['activities', lat, lng, radiusKm, categories],
     refetchInterval: 30_000,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_nearby_activities', {
         lat,

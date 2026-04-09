@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
@@ -128,12 +128,17 @@ interface ActivityMarkerProps {
   peopleLabel: string
 }
 
-const ActivityMarker = React.memo(function ActivityMarker({ activity, onSelect, locale, peopleLabel }: ActivityMarkerProps) {
+function ActivityMarkerInner({ activity, onSelect, locale, peopleLabel }: ActivityMarkerProps) {
+  const eventHandlers = useMemo(
+    () => ({ click: () => onSelect(activity) }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activity.id, onSelect],
+  )
   return (
     <Marker
       position={[activity.lat, activity.lng]}
       icon={ACTIVITY_ICONS[activity.category]}
-      eventHandlers={{ click: () => onSelect(activity) }}
+      eventHandlers={eventHandlers}
     >
       <Popup>
         <div className="min-w-[160px]">
@@ -150,7 +155,18 @@ const ActivityMarker = React.memo(function ActivityMarker({ activity, onSelect, 
       </Popup>
     </Marker>
   )
-})
+}
+
+const ActivityMarker = React.memo(ActivityMarkerInner, (prev, next) =>
+  prev.activity.id === next.activity.id &&
+  prev.activity.lat === next.activity.lat &&
+  prev.activity.lng === next.activity.lng &&
+  prev.activity.current_participants === next.activity.current_participants &&
+  prev.activity.title === next.activity.title &&
+  prev.onSelect === next.onSelect &&
+  prev.locale === next.locale &&
+  prev.peopleLabel === next.peopleLabel,
+)
 
 interface Props {
   onActivitySelect: (activity: Activity) => void
