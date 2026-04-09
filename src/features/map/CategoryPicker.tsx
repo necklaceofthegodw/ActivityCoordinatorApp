@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { ActivityCategory } from '@/lib/database.types'
 import { ALL_CATEGORIES } from '@/lib/categories'
+import { useBackButton } from '@/hooks/useBackButton'
 
 const MAX_PINNED = 5
 
@@ -13,6 +14,7 @@ interface Props {
 
 export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props) {
   const { t } = useTranslation()
+  useBackButton(isOpen, () => onOpenChange(false))
 
   function toggle(value: ActivityCategory) {
     if (pinned.includes(value)) {
