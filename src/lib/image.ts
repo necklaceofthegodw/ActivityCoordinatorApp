@@ -9,7 +9,8 @@ export function compressImage(file: File): Promise<Blob> {
     img.onload = () => {
       URL.revokeObjectURL(objectUrl)
 
-      let { width, height } = img
+      let width = img.naturalWidth
+      let height = img.naturalHeight
       if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
         if (width > height) {
           height = Math.round((height * MAX_DIMENSION) / width)
