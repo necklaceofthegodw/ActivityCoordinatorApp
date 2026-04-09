@@ -45,7 +45,7 @@ export function ProfilePage({ userId, onClose }: Props) {
   const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US'
 
   const [langSetting, setLangSetting] = useState<'auto' | 'en'>(() => {
-    const stored = localStorage.getItem('app-language')
+    const stored = localStorage.getItem('app-language-setting')
     return stored === 'en' ? 'en' : 'auto'
   })
 
@@ -95,11 +95,10 @@ export function ProfilePage({ userId, onClose }: Props) {
 
   function handleLanguageChange(setting: 'auto' | 'en') {
     setLangSetting(setting)
+    localStorage.setItem('app-language-setting', setting)
     if (setting === 'en') {
-      localStorage.setItem('app-language', 'en')
       i18n.changeLanguage('en')
     } else {
-      localStorage.removeItem('app-language')
       const detected = navigator.language.startsWith('pl') ? 'pl' : 'en'
       i18n.changeLanguage(detected)
     }
