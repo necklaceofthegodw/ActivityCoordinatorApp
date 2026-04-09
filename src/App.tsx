@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider'
 import LoginPage from '@/features/auth/LoginPage'
 import ProfileSetupPage from '@/features/auth/ProfileSetupPage'
+import VerifyPage from '@/features/auth/VerifyPage'
 import { MapView } from '@/features/map/MapView'
 import { ActivitySheet } from '@/features/activities/ActivitySheet'
 import { CreateActivitySheet } from '@/features/activities/CreateActivitySheet'
@@ -31,7 +32,9 @@ function ActivityLinkRoute() {
 
 function MapPage() {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
+  const navigate = useNavigate()
+  const verificationPending = sessionStorage.getItem('verificationPending') === 'true'
   const queryClient = useQueryClient()
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [createLocation, setCreateLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -75,6 +78,21 @@ function MapPage() {
 
   return (
     <div className="relative w-screen" style={{ height: 'var(--app-height, 100svh)' }}>
+      {/* Verification pending banner (shown when API was down during verify attempt) */}
+      {!profile?.is_verified && verificationPending && (
+        <div
+          className="absolute left-0 right-0 z-[1003] flex items-center justify-between gap-2 bg-amber-500 px-4 py-2 text-sm font-medium text-white"
+          style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.5rem)', top: 0 }}
+        >
+          <span>{t('verify.apiDownBanner')}</span>
+          <button
+            onClick={() => navigate('/verify')}
+            className="shrink-0 rounded-md bg-white/20 px-2 py-0.5 text-xs hover:bg-white/30"
+          >
+            {t('verify.apiDownBannerLink')}
+          </button>
+        </div>
+      )}
       <MapView
         onActivitySelect={handleActivitySelect}
         onCreateActivity={setCreateLocation}
@@ -144,6 +162,7 @@ function MapPage() {
 
 function AppRoutes() {
   const { session, profile, isLoading } = useAuth()
+  const verificationPending = sessionStorage.getItem('verificationPending') === 'true'
 
   if (isLoading) {
     return (
@@ -173,9 +192,19 @@ function AppRoutes() {
     )
   }
 
+  if (!profile.is_verified && !verificationPending) {
+    return (
+      <Routes>
+        <Route path="/verify" element={<VerifyPage />} />
+        <Route path="*" element={<Navigate to="/verify" replace />} />
+      </Routes>
+    )
+  }
+
   return (
     <Routes>
       <Route path="/" element={<MapPage />} />
+      <Route path="/verify" element={<VerifyPage />} />
       <Route path="/activity/:id" element={<ActivityLinkRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

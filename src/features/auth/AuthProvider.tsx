@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
+    sessionStorage.removeItem('verificationPending')
     await supabase.auth.signOut()
   }
 
