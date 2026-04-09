@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { compressImage } from '@/lib/image'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useProfile, useActivityHistory } from './useProfile'
 import { ReportUserDialog } from '@/features/reports/ReportUserDialog'
@@ -81,7 +82,7 @@ export function ProfilePage({ userId, onClose }: Props) {
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !user) return
-    if (file.size > 2 * 1024 * 1024) { toast.error(t('profile.avatarMax')); return }
+    if (file.size > 10 * 1024 * 1024) { toast.error(t('profile.avatarMax')); return }
 
     if (profile?.is_verified) {
       // Show inline confirmation instead of window.confirm (PWA-safe)
@@ -95,11 +96,19 @@ export function ProfilePage({ userId, onClose }: Props) {
 
   async function processAvatarUpload(file: File) {
     if (!user) return
-    const ext = file.name.split('.').pop()
-    const path = `${user.id}/avatar.${ext}`
+
+    let compressedBlob: Blob
+    try {
+      compressedBlob = await compressImage(file)
+    } catch {
+      toast.error(t('profile.uploadError'))
+      return
+    }
+
+    const path = `${user.id}/avatar.jpg`
     const { error } = await supabase.storage
       .from('avatars')
-      .upload(path, file, { upsert: true })
+      .upload(path, compressedBlob, { upsert: true, contentType: 'image/jpeg' })
 
     if (error) { toast.error(t('profile.uploadError')); return }
 
@@ -107,7 +116,11 @@ export function ProfilePage({ userId, onClose }: Props) {
       .from('avatars')
       .getPublicUrl(path)
 
-    const faceDetected = await validateAvatarFace(publicUrl)
+    // Append cache-busting param so the browser/CDN always loads the new file,
+    // and profile?.avatar_url always changes (triggering avatarError reset).
+    const avatarUrl = `${publicUrl}?t=${Date.now()}`
+
+    const faceDetected = await validateAvatarFace(avatarUrl)
 
     if (!faceDetected) {
       await supabase.storage.from('avatars').remove([path])
@@ -116,7 +129,7 @@ export function ProfilePage({ userId, onClose }: Props) {
     }
 
     // Single update — set new avatar and reset verification in one call
-    await supabase.from('profiles').update({ avatar_url: publicUrl, is_verified: false }).eq('id', user.id)
+    await supabase.from('profiles').update({ avatar_url: avatarUrl, is_verified: false }).eq('id', user.id)
     queryClient.invalidateQueries({ queryKey: ['profile', userId] })
     toast.success(t('profile.avatarUpdated'))
     // Refresh session → AuthProvider re-fetches profile → routing detects is_verified=false → /verify

@@ -9,6 +9,12 @@ const SIMILARITY_THRESHOLD = Number(Deno.env.get('FACE_SIMILARITY_THRESHOLD') ??
 const MAX_DAILY_ATTEMPTS = 3
 const MAX_SELFIE_BASE64_LENGTH = 4 * 1024 * 1024 // ~3 MB image after base64 overhead
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
 function getRekognitionClient(): RekognitionClient {
   return new RekognitionClient({
     region: Deno.env.get('AWS_REGION') ?? 'eu-central-1',
@@ -22,11 +28,15 @@ function getRekognitionClient(): RekognitionClient {
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
   })
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: CORS_HEADERS })
+  }
+
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabase = createClient(

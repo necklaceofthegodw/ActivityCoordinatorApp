@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { compressImage } from '@/lib/image'
 import { useAuth } from './AuthProvider'
 
 const profileSchema = z.object({
@@ -33,7 +34,7 @@ export default function ProfileSetupPage() {
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       toast.error(t('setup.avatarTooLarge'))
       return
     }
@@ -49,11 +50,19 @@ export default function ProfileSetupPage() {
       let avatarUrl: string | null = null
 
       if (avatarFile) {
-        const ext = avatarFile.name.split('.').pop()
-        const path = `${user.id}/avatar.${ext}`
+        let compressedBlob: Blob
+        try {
+          compressedBlob = await compressImage(avatarFile)
+        } catch {
+          toast.error(t('setup.avatarUploadFail'))
+          setIsSubmitting(false)
+          return
+        }
+
+        const path = `${user.id}/avatar.jpg`
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(path, avatarFile, { upsert: true })
+          .upload(path, compressedBlob, { upsert: true, contentType: 'image/jpeg' })
 
         if (uploadError) {
           toast.error(t('setup.avatarUploadFail'))
