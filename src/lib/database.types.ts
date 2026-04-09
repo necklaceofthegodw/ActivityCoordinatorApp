@@ -23,6 +23,9 @@ export type Database = {
           points: number
           tier: number
           flappy_highscore: number
+          is_verified: boolean
+          verification_attempts: number
+          last_attempt_at: string | null
         }
         Insert: {
           id: string
@@ -40,6 +43,9 @@ export type Database = {
           is_banned?: boolean
           report_count?: number
           flappy_highscore?: number
+          is_verified?: boolean
+          verification_attempts?: number
+          last_attempt_at?: string | null
         }
         Relationships: []
       }
