@@ -47,6 +47,7 @@ function MapPage() {
     return id
   })
   const [pendingFocusLocation, setPendingFocusLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [focusTrigger, setFocusTrigger] = useState(0)
 
   const { data: pendingActivity } = useActivityById(pendingActivityId)
 
@@ -54,6 +55,7 @@ function MapPage() {
     if (!pendingActivity) return
     setSelectedActivity(pendingActivity)
     setPendingFocusLocation({ lat: pendingActivity.lat, lng: pendingActivity.lng })
+    setFocusTrigger((n) => n + 1)
     setPendingActivityId(null)
     queryClient.invalidateQueries({ queryKey: ['my-activities'] })
   }, [pendingActivity])
@@ -61,6 +63,7 @@ function MapPage() {
   function handleActivitySelect(activity: Activity) {
     setSelectedActivity(activity)
     setPendingFocusLocation({ lat: activity.lat, lng: activity.lng })
+    setFocusTrigger((n) => n + 1)
   }
 
   function handleChatOpen(activityId: string) {
@@ -78,11 +81,12 @@ function MapPage() {
         pinnedCategories={pinnedCategories}
         onPinnedChange={setPinnedCategories}
         focusLocation={createLocation ?? pendingFocusLocation}
+        focusTrigger={focusTrigger}
       />
 
       <ActivitySheet
         activity={selectedActivity}
-        onClose={() => { setSelectedActivity(null); setPendingFocusLocation(null) }}
+        onClose={() => { setSelectedActivity(null); setFocusTrigger((n) => n + 1) }}
         onChatOpen={handleChatOpen}
         isAtLimit={isAtLimit}
       />

@@ -156,9 +156,10 @@ interface Props {
   pinnedCategories: ActivityCategory[]
   onPinnedChange: (pinned: ActivityCategory[]) => void
   focusLocation?: LatLng | null
+  focusTrigger?: number
 }
 
-export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, onPinnedChange, focusLocation }: Props) {
+export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, onPinnedChange, focusLocation, focusTrigger }: Props) {
   const { t } = useTranslation()
   const { location, isLoading } = useUserLocation()
   const [radiusKm, setRadiusKm] = useState(12)
@@ -217,7 +218,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
         )}
 
         {focusLocation && (
-          <RecenterOnPin lat={focusLocation.lat} lng={focusLocation.lng} />
+          <RecenterOnPin key={focusTrigger} lat={focusLocation.lat} lng={focusLocation.lng} />
         )}
 
         <MapClickHandler
@@ -259,7 +260,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
       {/* Radius slider — centered between category icons and profile button */}
       {!isPickerOpen && (
         <div className="absolute left-1/2 top-0 z-[1000] -translate-x-1/2" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 1rem)' }}>
-          <div className="w-36 rounded-xl bg-white/95 px-3 py-2 shadow-sm backdrop-blur-sm">
+          <div className="w-[187px] rounded-xl bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur-sm">
             <RadiusSlider value={radiusKm} onChange={(km) => { setRadiusKm(km); setHasRecentered(true) }} />
           </div>
         </div>
