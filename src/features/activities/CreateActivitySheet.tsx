@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,14 +19,14 @@ const maxDate = new Date(now.getTime() + 48 * 60 * 60 * 1000)
 const allCategoryValues = ALL_CATEGORIES.map((c) => c.value) as [ActivityCategory, ...ActivityCategory[]]
 
 const schema = z.object({
-  title: z.string().min(3, 'Min. 3 znaki').max(80, 'Max. 80 znaków'),
-  description: z.string().max(400, 'Max. 400 znaków').optional(),
+  title: z.string().min(3, 'activity.titleMin').max(80, 'activity.titleMax'),
+  description: z.string().max(400, 'activity.descriptionMax').optional(),
   category: z.enum(allCategoryValues),
   location_name: z.string().max(100).optional(),
   scheduled_at: z.string().refine((val) => {
     const d = new Date(val)
     return d > now && d <= maxDate
-  }, 'Czas musi być w ciągu najbliższych 48h'),
+  }, 'activity.timeInvalid'),
   max_participants: z.coerce.number().int().min(2).max(50),
   is_private: z.boolean(),
 })
@@ -64,6 +65,7 @@ interface Props {
 }
 
 export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtLimit }: Props) {
+  const { t, i18n } = useTranslation()
   const create = useCreateActivity()
   const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false)
   const [isGeocodingLocation, setIsGeocodingLocation] = useState(true)
@@ -73,14 +75,16 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
   useBackButton(true, onClose)
   useBackButton(isCategoryPickerOpen, () => setIsCategoryPickerOpen(false))
 
+  const acceptLang = i18n.language === 'pl' ? 'pl' : 'en'
+
   // Reverse geocode pin location
   useEffect(() => {
     let cancelled = false
     setIsGeocodingLocation(true)
 
     fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pl`,
-      { headers: { 'Accept-Language': 'pl' } }
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=${acceptLang}`,
+      { headers: { 'Accept-Language': acceptLang } }
     )
       .then((r) => r.json())
       .then((data) => {
@@ -171,7 +175,7 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
       {isCategoryPickerOpen && (
         <div className="fixed inset-0 z-[1010] flex flex-col bg-white" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.5rem)', paddingBottom: '1rem' }}>
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-            <h2 className="text-lg font-bold text-gray-900">Wybierz kategorię</h2>
+            <h2 className="text-lg font-bold text-gray-900">{t('activity.chooseCategory')}</h2>
             <button
               onClick={() => setIsCategoryPickerOpen(false)}
               className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
@@ -195,7 +199,7 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
                     }`}
                   >
                     <span className="text-2xl leading-none">{cat.emoji}</span>
-                    <span className="px-1 text-center text-[10px] font-medium leading-tight">{cat.label}</span>
+                    <span className="px-1 text-center text-[10px] font-medium leading-tight">{t(`category.${cat.value}`)}</span>
                     {isSelected && <span className="absolute right-1.5 top-1.5 text-xs text-blue-600">✓</span>}
                   </button>
                 )
@@ -227,29 +231,29 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-5 pb-2">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">Nowa aktywność</h2>
+          <h2 className="mb-4 text-lg font-bold text-gray-900">{t('activity.new')}</h2>
 
           {isAtLimit && (
             <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Osiągnąłeś limit 3 aktywnych aktywności. Opuść lub poczekaj na zakończenie jednej z nich.
+              {t('activity.limitReached')}
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Tytuł */}
+            {/* Title */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Tytuł *</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('activity.title')}</label>
               <input
                 {...register('title')}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                placeholder="np. Poranny bieg w parku"
+                placeholder={t('activity.titlePlaceholder')}
               />
-              {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title.message}</p>}
+              {errors.title && <p className="mt-1 text-xs text-red-500">{t(errors.title.message!)}</p>}
             </div>
 
-            {/* Kategoria */}
+            {/* Category */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Kategoria *</label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">{t('activity.category')}</label>
               <div className="flex flex-wrap items-center gap-2">
                 {pinnedCategories.map((value) => {
                   const cat = CATEGORY_MAP[value]
@@ -265,7 +269,7 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
                           : 'border-gray-200 text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      {cat.emoji} {cat.label}
+                      {cat.emoji} {t(`category.${value}`)}
                     </button>
                   )
                 })}
@@ -279,33 +283,33 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
                   }`}
                 >
                   {selectedCategory && !pinnedCategories.includes(selectedCategory)
-                    ? `${CATEGORY_MAP[selectedCategory].emoji} ${CATEGORY_MAP[selectedCategory].label}`
-                    : '＋ Więcej'}
+                    ? `${CATEGORY_MAP[selectedCategory].emoji} ${t(`category.${selectedCategory}`)}`
+                    : t('activity.more')}
                 </button>
               </div>
-              {errors.category && <p className="mt-1 text-xs text-red-500">{errors.category.message}</p>}
+              {errors.category && <p className="mt-1 text-xs text-red-500">{t(errors.category.message!)}</p>}
             </div>
 
-            {/* Opis */}
+            {/* Description */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Opis</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('activity.description')}</label>
               <textarea
                 {...register('description')}
                 rows={2}
                 className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                placeholder="Dodaj szczegóły..."
+                placeholder={t('activity.descriptionPlaceholder')}
               />
             </div>
 
-            {/* Miejsce */}
+            {/* Location */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Lokalizacja</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('activity.location')}</label>
               <div className="relative">
                 <input
                   {...register('location_name')}
                   readOnly
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 outline-none"
-                  placeholder="Pobieranie lokalizacji..."
+                  placeholder={t('activity.locationLoading')}
                 />
                 {isGeocodingLocation && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -315,9 +319,9 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
               </div>
             </div>
 
-            {/* Czas */}
+            {/* When */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Kiedy? *</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('activity.when')}</label>
               <input
                 {...register('scheduled_at')}
                 type="datetime-local"
@@ -325,12 +329,12 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
                 max={toLocalDateTimeString(maxDate)}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
-              {errors.scheduled_at && <p className="mt-1 text-xs text-red-500">{errors.scheduled_at.message}</p>}
+              {errors.scheduled_at && <p className="mt-1 text-xs text-red-500">{t(errors.scheduled_at.message!)}</p>}
             </div>
 
-            {/* Liczba osób */}
+            {/* Max participants */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">Liczba osób *</label>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('activity.maxParticipants')}</label>
               <input
                 {...register('max_participants')}
                 type="number"
@@ -341,15 +345,15 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
               {errors.max_participants && <p className="mt-1 text-xs text-red-500">{errors.max_participants.message}</p>}
             </div>
 
-            {/* Prywatność */}
+            {/* Privacy */}
             <button
               type="button"
               onClick={handlePrivateToggle}
               className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-left transition hover:bg-gray-50"
             >
               <div>
-                <p className="text-sm font-medium text-gray-800">Prywatna aktywność</p>
-                <p className="text-xs text-gray-400">Nie pojawi się na mapie — udostępniaj przez link</p>
+                <p className="text-sm font-medium text-gray-800">{t('activity.private')}</p>
+                <p className="text-xs text-gray-400">{t('activity.privateDesc')}</p>
               </div>
               <div className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${isPrivate ? 'bg-blue-600' : 'bg-gray-200'}`}>
                 <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isPrivate ? 'translate-x-5' : 'translate-x-0.5'}`} />
@@ -362,14 +366,14 @@ export function CreateActivitySheet({ lat, lng, pinnedCategories, onClose, isAtL
                 disabled={create.isPending || isAtLimit}
                 className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
               >
-                {create.isPending ? 'Dodawanie...' : isPrivate ? 'Utwórz prywatną' : 'Dodaj na mapę'}
+                {create.isPending ? t('activity.creating') : isPrivate ? t('activity.createPrivate') : t('activity.createPublic')}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
               >
-                Anuluj
+                {t('common.cancel')}
               </button>
             </div>
           </form>

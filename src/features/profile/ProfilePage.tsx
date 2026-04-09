@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -13,7 +14,7 @@ import { CATEGORY_MAP } from '@/lib/categories'
 import { useBackButton } from '@/hooks/useBackButton'
 
 const editSchema = z.object({
-  bio: z.string().max(160, 'Max. 160 znaków').optional(),
+  bio: z.string().max(160, 'profile.bioMax').optional(),
 })
 
 type EditForm = z.infer<typeof editSchema>
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function ProfilePage({ userId, onClose }: Props) {
+  const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const { data: profile, isLoading } = useProfile(userId)
@@ -40,6 +42,12 @@ export function ProfilePage({ userId, onClose }: Props) {
 
   const { signOut } = useAuth()
   const isOwnProfile = user?.id === userId
+  const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US'
+
+  const [langSetting, setLangSetting] = useState<'auto' | 'en'>(() => {
+    const stored = localStorage.getItem('app-language')
+    return stored === 'en' ? 'en' : 'auto'
+  })
 
   useBackButton(true, onClose)
 
@@ -51,14 +59,14 @@ export function ProfilePage({ userId, onClose }: Props) {
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !user) return
-    if (file.size > 2 * 1024 * 1024) { toast.error('Max. 2MB'); return }
+    if (file.size > 2 * 1024 * 1024) { toast.error(t('profile.avatarMax')); return }
 
     const ext = file.name.split('.').pop()
     const { error } = await supabase.storage
       .from('avatars')
       .upload(`${user.id}/avatar.${ext}`, file, { upsert: true })
 
-    if (error) { toast.error('Błąd uploadu'); return }
+    if (error) { toast.error(t('profile.uploadError')); return }
 
     const { data: { publicUrl } } = supabase.storage
       .from('avatars')
@@ -66,7 +74,7 @@ export function ProfilePage({ userId, onClose }: Props) {
 
     await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
     queryClient.invalidateQueries({ queryKey: ['profile', userId] })
-    toast.success('Avatar zaktualizowany')
+    toast.success(t('profile.avatarUpdated'))
   }
 
   async function onSave(data: EditForm) {
@@ -78,11 +86,23 @@ export function ProfilePage({ userId, onClose }: Props) {
       .eq('id', user.id)
 
     setIsSaving(false)
-    if (error) { toast.error('Nie udało się zapisać'); return }
+    if (error) { toast.error(t('profile.saveFailed')); return }
 
     queryClient.invalidateQueries({ queryKey: ['profile', userId] })
     setIsEditing(false)
-    toast.success('Profil zapisany')
+    toast.success(t('profile.saved'))
+  }
+
+  function handleLanguageChange(setting: 'auto' | 'en') {
+    setLangSetting(setting)
+    if (setting === 'en') {
+      localStorage.setItem('app-language', 'en')
+      i18n.changeLanguage('en')
+    } else {
+      localStorage.removeItem('app-language')
+      const detected = navigator.language.startsWith('pl') ? 'pl' : 'en'
+      i18n.changeLanguage(detected)
+    }
   }
 
   if (isLoading || !profile) {
@@ -107,14 +127,14 @@ export function ProfilePage({ userId, onClose }: Props) {
             </svg>
           </button>
           <span className="flex-1 text-sm font-semibold text-gray-900">
-            {isOwnProfile ? 'Mój profil' : 'Profil użytkownika'}
+            {isOwnProfile ? t('profile.myProfile') : t('profile.userProfile')}
           </span>
           {isOwnProfile && !isEditing && (
             <button
               onClick={() => setIsEditing(true)}
               className="text-sm font-medium text-blue-600 hover:underline"
             >
-              Edytuj
+              {t('profile.edit')}
             </button>
           )}
           {isOwnProfile && (
@@ -122,7 +142,7 @@ export function ProfilePage({ userId, onClose }: Props) {
               onClick={signOut}
               className="text-sm font-medium text-red-500 hover:underline"
             >
-              Wyloguj
+              {t('profile.logout')}
             </button>
           )}
           {!isOwnProfile && (
@@ -130,7 +150,7 @@ export function ProfilePage({ userId, onClose }: Props) {
               onClick={() => setShowReport(true)}
               className="text-sm font-medium text-red-500 hover:underline"
             >
-              Zgłoś
+              {t('profile.report')}
             </button>
           )}
         </div>
@@ -180,14 +200,14 @@ export function ProfilePage({ userId, onClose }: Props) {
               <div className="mb-4 flex w-full max-w-xs flex-col items-center gap-2">
                 <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${tierInfo.bg} ${tierInfo.color}`}>
                   <span>{tierInfo.emoji}</span>
-                  <span>{tierInfo.label}</span>
+                  <span>{t(`tier.${profile.tier}`)}</span>
                 </span>
-                <p className="text-sm font-medium text-gray-700">{profile.points} pkt</p>
+                <p className="text-sm font-medium text-gray-700">{profile.points} {t('profile.points')}</p>
                 {nextPoints && (
                   <div className="w-full">
                     <div className="mb-1 flex justify-between text-xs text-gray-400">
-                      <span>{profile.points} pkt</span>
-                      <span>{nextPoints} pkt do {TIERS[profile.tier + 1]?.label}</span>
+                      <span>{t('profile.pointsProgress', { current: profile.points })}</span>
+                      <span>{t('profile.pointsToNext', { target: nextPoints, tier: t(`tier.${profile.tier + 1}`) })}</span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
                       <div
@@ -197,7 +217,7 @@ export function ProfilePage({ userId, onClose }: Props) {
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-gray-400">{profile.activity_count} aktywności</p>
+                <p className="text-xs text-gray-400">{t('profile.activityCount', { count: profile.activity_count })}</p>
               </div>
             )
           })()}
@@ -209,10 +229,10 @@ export function ProfilePage({ userId, onClose }: Props) {
                 <textarea
                   {...register('bio')}
                   rows={3}
-                  placeholder="Powiedz coś o sobie..."
+                  placeholder={t('setup.bioPlaceholder')}
                   className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
-                {errors.bio && <p className="mt-1 text-xs text-red-500">{errors.bio.message}</p>}
+                {errors.bio && <p className="mt-1 text-xs text-red-500">{t(errors.bio.message!)}</p>}
               </div>
               <div className="flex gap-2">
                 <button
@@ -220,14 +240,14 @@ export function ProfilePage({ userId, onClose }: Props) {
                   disabled={isSaving}
                   className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-medium text-white disabled:opacity-60"
                 >
-                  {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+                  {isSaving ? t('common.saving') : t('common.save')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
                   className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600"
                 >
-                  Anuluj
+                  {t('common.cancel')}
                 </button>
               </div>
             </form>
@@ -238,11 +258,36 @@ export function ProfilePage({ userId, onClose }: Props) {
           )}
         </div>
 
+        {/* Language setting */}
+        {isOwnProfile && (
+          <div className="mx-4 mb-4 border-t border-gray-100 pt-4">
+            <h3 className="mb-2 text-sm font-semibold text-gray-700">{t('profile.language')}</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleLanguageChange('auto')}
+                className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                  langSetting === 'auto' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'
+                }`}
+              >
+                {t('profile.languageAuto')}
+              </button>
+              <button
+                onClick={() => handleLanguageChange('en')}
+                className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                  langSetting === 'en' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'
+                }`}
+              >
+                {t('profile.languageEnglish')}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Activity history */}
         <div className="px-4 pb-6">
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">Historia aktywności</h3>
+          <h3 className="mb-3 text-sm font-semibold text-gray-700">{t('profile.activityHistory')}</h3>
           {history.length === 0 ? (
-            <p className="text-center text-sm text-gray-400">Brak zakończonych aktywności</p>
+            <p className="text-center text-sm text-gray-400">{t('profile.noHistory')}</p>
           ) : (
             <div className="space-y-2">
               {history.map((activity) => (
@@ -251,10 +296,10 @@ export function ProfilePage({ userId, onClose }: Props) {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-gray-900">{activity.title}</p>
                     <p className="text-xs text-gray-400">
-                      {new Date(activity.scheduled_at).toLocaleDateString('pl-PL', {
+                      {new Date(activity.scheduled_at).toLocaleDateString(locale, {
                         day: 'numeric', month: 'short', year: 'numeric',
                       })}
-                      {' · '}{activity.current_participants}/{activity.max_participants} osób
+                      {' · '}{activity.current_participants}/{activity.max_participants} {t('profile.people')}
                     </p>
                   </div>
                 </div>

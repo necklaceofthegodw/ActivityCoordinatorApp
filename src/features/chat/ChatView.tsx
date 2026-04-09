@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { useChat } from './useChat'
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function ChatView({ activity, onClose }: Props) {
+  const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const { messages, isLoading, sendMessage, senderProfiles, isActivityDeleted } = useChat(activity.id)
@@ -43,6 +45,7 @@ export function ChatView({ activity, onClose }: Props) {
   const act = fullActivity ?? activity
 
   const isHost = activity.organizer_id === user?.id
+  const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US'
 
   useBackButton(true, onClose)
 
@@ -80,7 +83,7 @@ export function ChatView({ activity, onClose }: Props) {
           ? err.message
           : typeof err === 'object' && err !== null && 'message' in err
             ? String((err as { message: unknown }).message)
-            : 'Nieznany błąd'
+            : t('chat.unknownError')
       toast.error(message)
       setInput(content)
     } finally {
@@ -115,7 +118,7 @@ export function ChatView({ activity, onClose }: Props) {
             <p className="truncate text-sm font-semibold text-gray-900">{activity.title}</p>
             {scheduledAt && (
               <p className="text-xs text-gray-400">
-                {scheduledAt.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                {scheduledAt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
               </p>
             )}
           </div>
@@ -123,7 +126,7 @@ export function ChatView({ activity, onClose }: Props) {
             onClick={() => user && setViewingProfile(user.id)}
             className="shrink-0 text-xs text-gray-400 hover:text-blue-600"
           >
-            Mój profil
+            {t('profile.myProfile')}
           </button>
         </div>
 
@@ -135,7 +138,7 @@ export function ChatView({ activity, onClose }: Props) {
               activeTab === 'chat' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'
             }`}
           >
-            💬 Czat
+            💬 {t('chat.tab')}
           </button>
           <button
             onClick={() => handleTabChange('game')}
@@ -151,7 +154,7 @@ export function ChatView({ activity, onClose }: Props) {
               activeTab === 'settings' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'
             }`}
           >
-            ⚙️ Ustawienia
+            ⚙️ {t('chat.settings')}
           </button>
         </div>
 
@@ -166,7 +169,7 @@ export function ChatView({ activity, onClose }: Props) {
         {activeTab === 'settings' && (
           <div className="border-b border-gray-100 p-4">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-              Uczestnicy ({act.current_participants}/{act.max_participants})
+              {t('chat.participants')} ({act.current_participants}/{act.max_participants})
             </p>
             <div className="space-y-2">
               {/* Organizer */}
@@ -182,7 +185,7 @@ export function ChatView({ activity, onClose }: Props) {
                   </div>
                 )}
                 <span className="flex-1 text-sm font-medium text-gray-800">{act.organizer_nickname}</span>
-                <span className="text-xs text-blue-600 font-medium">Organizator</span>
+                <span className="text-xs text-blue-600 font-medium">{t('chat.organizer')}</span>
               </button>
 
               {/* Participants */}
@@ -230,11 +233,11 @@ export function ChatView({ activity, onClose }: Props) {
             <button
               onClick={() => {
                 navigator.clipboard.writeText(`${window.location.origin}/activity/${activity.id}`)
-                toast.success('Link skopiowany do schowka')
+                toast.success(t('chat.linkCopied'))
               }}
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 py-3 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
             >
-              🔗 Skopiuj link zaproszenia
+              🔗 {t('chat.copyLink')}
             </button>
           </div>
         )}
@@ -243,14 +246,14 @@ export function ChatView({ activity, onClose }: Props) {
         {activeTab === 'settings' && isHost && (
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Opis aktywności</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">{t('chat.descriptionLabel')}</label>
               <textarea
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
                 rows={4}
                 maxLength={400}
                 className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                placeholder="Dodaj opis dla uczestników..."
+                placeholder={t('chat.descriptionPlaceholder')}
               />
               <div className="mt-1 flex items-center justify-between">
                 <span className="text-xs text-gray-400">{desc.length}/400</span>
@@ -259,36 +262,36 @@ export function ChatView({ activity, onClose }: Props) {
                   disabled={updateDesc.isPending}
                   className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
                 >
-                  {updateDesc.isPending ? 'Zapisywanie...' : 'Zapisz'}
+                  {updateDesc.isPending ? t('common.saving') : t('common.save')}
                 </button>
               </div>
             </div>
 
             <div className="border-t border-gray-100 pt-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">Strefa niebezpieczna</p>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">{t('chat.dangerZone')}</p>
               {!showDeleteConfirm ? (
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
                   className="w-full rounded-xl border border-red-200 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
                 >
-                  Usuń aktywność
+                  {t('chat.deleteActivity')}
                 </button>
               ) : (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
-                  <p className="text-sm text-gray-800">Czy na pewno chcesz usunąć aktywność? Tej operacji nie można cofnąć.</p>
+                  <p className="text-sm text-gray-800">{t('chat.deleteConfirm')}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => deleteActivity.mutate(activity.id, { onSuccess: onClose })}
                       disabled={deleteActivity.isPending}
                       className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
                     >
-                      {deleteActivity.isPending ? 'Usuwanie...' : 'Tak, usuń'}
+                      {deleteActivity.isPending ? t('chat.deleting') : t('chat.confirmDelete')}
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
                       className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
                     >
-                      Anuluj
+                      {t('common.cancel')}
                     </button>
                   </div>
                 </div>
@@ -305,24 +308,24 @@ export function ChatView({ activity, onClose }: Props) {
                 onClick={() => setShowLeaveConfirm(true)}
                 className="w-full rounded-xl border border-red-200 py-3.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
               >
-                🚪 Opuść aktywność
+                🚪 {t('chat.leaveActivity')}
               </button>
             ) : (
               <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
-                <p className="text-sm text-gray-800">Czy na pewno chcesz opuścić aktywność?</p>
+                <p className="text-sm text-gray-800">{t('chat.leaveConfirm')}</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => leaveActivity.mutate(activity.id, { onSuccess: onClose })}
                     disabled={leaveActivity.isPending}
                     className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60"
                   >
-                    {leaveActivity.isPending ? '...' : 'Tak, opuść'}
+                    {leaveActivity.isPending ? '...' : t('chat.confirmLeave')}
                   </button>
                   <button
                     onClick={() => setShowLeaveConfirm(false)}
                     className="flex-1 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
                   >
-                    Anuluj
+                    {t('common.cancel')}
                   </button>
                 </div>
               </div>
@@ -337,10 +340,10 @@ export function ChatView({ activity, onClose }: Props) {
             <div className="flex items-center gap-3 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
               <span className="text-2xl leading-none">{cat?.emoji}</span>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-gray-700">{cat?.label}</p>
+                <p className="text-xs font-medium text-gray-700">{t(`category.${act.category}`)}</p>
                 {scheduledAt && (
                   <p className="text-xs text-gray-500">
-                    {scheduledAt.toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {scheduledAt.toLocaleString(locale, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </p>
                 )}
               </div>
@@ -359,7 +362,7 @@ export function ChatView({ activity, onClose }: Props) {
               {!isLoading && messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <span className="mb-2 text-3xl">💬</span>
-                  <p className="text-sm text-gray-400">Bądź pierwszy i napisz coś!</p>
+                  <p className="text-sm text-gray-400">{t('chat.emptyChat')}</p>
                 </div>
               )}
 
@@ -391,7 +394,7 @@ export function ChatView({ activity, onClose }: Props) {
                       <div className={`rounded-2xl px-3 py-2 text-sm ${isOwn ? 'rounded-br-sm bg-blue-600 text-white' : 'rounded-bl-sm bg-gray-100 text-gray-900'}`}>
                         <p className="break-words">{msg.content}</p>
                         <p className={`mt-0.5 text-right text-[10px] ${isOwn ? 'text-blue-200' : 'text-gray-400'}`}>
-                          {new Date(msg.created_at).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>
@@ -409,7 +412,7 @@ export function ChatView({ activity, onClose }: Props) {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   rows={1}
-                  placeholder="Napisz wiadomość..."
+                  placeholder={t('chat.inputPlaceholder')}
                   className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   style={{ maxHeight: '120px' }}
                 />
@@ -431,13 +434,13 @@ export function ChatView({ activity, onClose }: Props) {
       {isActivityDeleted && !isHost && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-white px-6 text-center">
           <span className="text-5xl">🚫</span>
-          <p className="text-base font-semibold text-gray-900">Aktywność została anulowana</p>
-          <p className="text-sm text-gray-500">Organizator usunął tę aktywność.</p>
+          <p className="text-base font-semibold text-gray-900">{t('chat.activityDeleted')}</p>
+          <p className="text-sm text-gray-500">{t('chat.activityDeletedDesc')}</p>
           <button
             onClick={onClose}
             className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white"
           >
-            Wróć
+            {t('common.back')}
           </button>
         </div>
       )}

@@ -15,6 +15,12 @@ interface Pipe {
 
 type GameState = 'idle' | 'playing' | 'dead'
 
+export interface GameLabels {
+  start: string
+  score: (score: number) => string
+  gameOver: (best: number) => string
+}
+
 export class FlappyBirdGame {
   private canvas: HTMLCanvasElement
   private ctx: CanvasRenderingContext2D
@@ -27,13 +33,19 @@ export class FlappyBirdGame {
   private animationId: number | null = null
   private pipeTimer: ReturnType<typeof setTimeout> | null = null
   private onNewHighscore: ((score: number) => void) | null = null
+  private labels: GameLabels
 
-  constructor(canvas: HTMLCanvasElement, initialBestScore = 0, onNewHighscore?: (score: number) => void) {
+  constructor(canvas: HTMLCanvasElement, initialBestScore = 0, onNewHighscore?: (score: number) => void, labels?: GameLabels) {
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')!
     this.birdY = canvas.height / 2
     this.bestScore = initialBestScore
     this.onNewHighscore = onNewHighscore ?? null
+    this.labels = labels ?? {
+      start: 'Click or press space',
+      score: (s) => `Score: ${s}`,
+      gameOver: (b) => `Record: ${b}  •  Click to play again`,
+    }
     this.render()
   }
 
@@ -184,11 +196,11 @@ export class FlappyBirdGame {
 
     // Overlays
     if (this.state === 'idle') {
-      this.drawOverlay('Flappy Bird', 'Kliknij lub naciśnij spację')
+      this.drawOverlay('Flappy Bird', this.labels.start)
     } else if (this.state === 'dead') {
       this.drawOverlay(
-        `Wynik: ${this.score}`,
-        `Rekord: ${this.bestScore}  •  Kliknij aby zagrać ponownie`,
+        this.labels.score(this.score),
+        this.labels.gameOver(this.bestScore),
       )
     }
   }

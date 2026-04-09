@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -123,9 +124,11 @@ function MapClickHandler({
 interface ActivityMarkerProps {
   activity: Activity
   onSelect: (activity: Activity) => void
+  locale: string
+  peopleLabel: string
 }
 
-const ActivityMarker = React.memo(function ActivityMarker({ activity, onSelect }: ActivityMarkerProps) {
+const ActivityMarker = React.memo(function ActivityMarker({ activity, onSelect, locale, peopleLabel }: ActivityMarkerProps) {
   return (
     <Marker
       position={[activity.lat, activity.lng]}
@@ -136,12 +139,12 @@ const ActivityMarker = React.memo(function ActivityMarker({ activity, onSelect }
         <div className="min-w-[160px]">
           <p className="font-semibold">{activity.title}</p>
           <p className="text-xs text-gray-500">
-            {new Date(activity.scheduled_at).toLocaleString('pl-PL', {
+            {new Date(activity.scheduled_at).toLocaleString(locale, {
               weekday: 'short', hour: '2-digit', minute: '2-digit',
             })}
           </p>
           <p className="text-xs text-gray-500">
-            {activity.current_participants}/{activity.max_participants} osób
+            {activity.current_participants}/{activity.max_participants} {peopleLabel}
           </p>
         </div>
       </Popup>
@@ -158,7 +161,9 @@ interface Props {
 }
 
 export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, onPinnedChange, focusLocation }: Props) {
+  const { t, i18n } = useTranslation()
   const { location, isLoading } = useUserLocation()
+  const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US'
   const [radiusKm, setRadiusKm] = useState(12)
   const [categories, setCategories] = useState<ActivityCategory[]>([])
   const [hasRecentered, setHasRecentered] = useState(false)
@@ -243,6 +248,8 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
             key={activity.id}
             activity={activity}
             onSelect={onActivitySelect}
+            locale={locale}
+            peopleLabel={t('activity.people')}
           />
         ))}
       </MapContainer>
@@ -261,12 +268,12 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
       {isPickingLocation && (
         <div className="absolute bottom-24 left-1/2 z-[1000] -translate-x-1/2">
           <div className="flex items-center gap-3 rounded-2xl bg-gray-900/90 px-4 py-3 text-white shadow-xl backdrop-blur-sm">
-            <span className="text-sm font-medium">Kliknij na mapie aby ustawić lokalizację</span>
+            <span className="text-sm font-medium">{t('map.pickLocation')}</span>
             <button
               onClick={handleCancelPick}
               className="rounded-lg bg-white/20 px-2 py-1 text-xs font-medium transition hover:bg-white/30"
             >
-              Anuluj
+              {t('common.cancel')}
             </button>
           </div>
         </div>
@@ -293,7 +300,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
           onClick={handleFabClick}
           className="absolute right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition hover:bg-blue-700 active:scale-95"
           style={{ bottom: '1.5rem' }}
-          aria-label="Dodaj aktywność"
+          aria-label={t('activity.new')}
         >
           <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

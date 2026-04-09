@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -18,6 +19,7 @@ export interface CreateActivityInput {
 }
 
 export function useCreateActivity() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { user } = useAuth()
 
@@ -66,7 +68,7 @@ export function useCreateActivity() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
       queryClient.invalidateQueries({ queryKey: ['my-activities'] })
-      toast.success(variables.is_private ? 'Prywatna aktywność została utworzona!' : 'Aktywność została dodana na mapę!')
+      toast.success(variables.is_private ? t('activity.createdPrivate') : t('activity.created'))
     },
   })
 }

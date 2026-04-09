@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { ActivityCategory } from '@/lib/database.types'
 import { ALL_CATEGORIES } from '@/lib/categories'
 
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props) {
+  const { t } = useTranslation()
 
   function toggle(value: ActivityCategory) {
     if (pinned.includes(value)) {
@@ -25,7 +27,7 @@ export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props
       <button
         onClick={() => onOpenChange(true)}
         className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-xl shadow-md transition active:scale-95"
-        aria-label="Wybierz kategorie"
+        aria-label={t('map.categoryPickerLabel')}
       >
         🗂️
       </button>
@@ -35,8 +37,8 @@ export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Wybierz kategorie</h2>
-              <p className="text-xs text-gray-500">Zaznacz maksymalnie 5 widocznych w filtrach</p>
+              <h2 className="text-lg font-bold text-gray-900">{t('map.chooseCategories')}</h2>
+              <p className="text-xs text-gray-500">{t('map.maxPinned')}</p>
             </div>
             <span className="text-sm font-semibold text-blue-600">{pinned.length}/{MAX_PINNED}</span>
           </div>
@@ -61,7 +63,7 @@ export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props
                     }`}
                   >
                     <span className="text-2xl leading-none">{cat.emoji}</span>
-                    <span className="text-[10px] font-medium leading-tight text-center px-1">{cat.label}</span>
+                    <span className="text-[10px] font-medium leading-tight text-center px-1">{t(`category.${cat.value}`)}</span>
                     {isPinned && (
                       <span className="absolute top-1.5 right-1.5 text-blue-600 text-xs">✓</span>
                     )}
@@ -77,7 +79,7 @@ export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props
               onClick={() => onOpenChange(false)}
               className="w-full rounded-2xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98]"
             >
-              Gotowe
+              {t('common.done')}
             </button>
           </div>
         </div>

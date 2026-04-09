@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/AuthProvider'
 import type { Database } from '@/lib/database.types'
 import { useJoinActivity } from './useJoinActivity'
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Props) {
+  const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const join = useJoinActivity()
   const leave = useLeaveActivity()
@@ -35,6 +37,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
   const spotsLeft = activity.max_participants - activity.current_participants
   const isOrganizer = user?.id === activity.organizer_id
   const hasAccess = isOrganizer || isParticipant
+  const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US'
 
   return (
     <>
@@ -52,7 +55,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
         <div className="mb-1 flex items-start justify-between gap-2">
           <h2 className="text-lg font-bold text-gray-900">{activity.title}</h2>
           <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-            {CATEGORY_MAP[activity.category]?.emoji} {CATEGORY_MAP[activity.category]?.label}
+            {CATEGORY_MAP[activity.category]?.emoji} {t(`category.${activity.category}`)}
           </span>
         </div>
 
@@ -74,7 +77,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
             const tierInfo = getTierInfo(organizerProfile.tier)
             return (
               <span className={`ml-1 rounded-full px-2 py-0.5 text-xs font-semibold ${tierInfo.bg} ${tierInfo.color}`}>
-                {tierInfo.emoji} {tierInfo.label}
+                {tierInfo.emoji} {t(`tier.${organizerProfile.tier}`)}
               </span>
             )
           })()}
@@ -89,7 +92,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
         <div className="mb-4 flex flex-wrap gap-3 text-sm text-gray-500">
           <span>
             🕐{' '}
-            {scheduledAt.toLocaleString('pl-PL', {
+            {scheduledAt.toLocaleString(locale, {
               weekday: 'long',
               day: 'numeric',
               month: 'short',
@@ -98,9 +101,9 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
             })}
           </span>
           <span>
-            👥 {activity.current_participants}/{activity.max_participants} osób
-            {!isFull && <span className="ml-1 text-green-600">({spotsLeft} miejsc)</span>}
-            {isFull && <span className="ml-1 text-red-500">(pełna)</span>}
+            👥 {activity.current_participants}/{activity.max_participants} {t('activity.people')}
+            {!isFull && <span className="ml-1 text-green-600">{t('activity.spotsLeft', { count: spotsLeft })}</span>}
+            {isFull && <span className="ml-1 text-red-500">{t('activity.full')}</span>}
           </span>
           {activity.location_name && <span>📍 {activity.location_name}</span>}
         </div>
@@ -113,21 +116,21 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
                 onClick={() => onChatOpen(activity.id)}
                 className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
               >
-                💬 Otwórz czat
+                💬 {t('activity.openChat')}
               </button>
             ) : isFull ? (
               <button
                 disabled
                 className="flex-1 rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-400"
               >
-                Brak miejsc
+                {t('activity.noSpots')}
               </button>
             ) : isAtLimit ? (
               <button
                 disabled
                 className="flex-1 rounded-xl bg-amber-50 py-3 text-sm font-medium text-amber-700 border border-amber-200"
               >
-                Limit 3 aktywności
+                {t('activity.limitLabel')}
               </button>
             ) : (
               <button
@@ -135,36 +138,36 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
                 disabled={join.isPending}
                 className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
               >
-                {join.isPending ? 'Dołączanie...' : 'Dołącz'}
+                {join.isPending ? t('activity.joining') : t('activity.join')}
               </button>
             )}
             <button
               onClick={onClose}
               className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
             >
-              Zamknij
+              {t('common.close')}
             </button>
           </div>
 
-          {/* Opuść — tylko dla uczestników (nie organizatora) */}
+          {/* Leave — participant only (not organizer) */}
           {isParticipant && !isOrganizer && (
             <button
               onClick={() => leave.mutate(activity.id)}
               disabled={leave.isPending}
               className="w-full rounded-xl border border-red-200 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-50 disabled:opacity-60"
             >
-              {leave.isPending ? 'Opuszczanie...' : 'Opuść aktywność'}
+              {leave.isPending ? t('activity.leaving') : t('activity.leave')}
             </button>
           )}
 
-          {/* Anuluj — tylko dla organizatora */}
+          {/* Cancel — organizer only */}
           {isOrganizer && (
             <button
               onClick={() => { deleteActivity.mutate(activity.id); onClose() }}
               disabled={deleteActivity.isPending}
               className="w-full rounded-xl border border-red-200 py-2.5 text-sm font-medium text-red-500 transition hover:bg-red-50 disabled:opacity-60"
             >
-              {deleteActivity.isPending ? 'Anulowanie...' : 'Anuluj aktywność'}
+              {deleteActivity.isPending ? t('activity.cancelling') : t('activity.cancelActivity')}
             </button>
           )}
         </div>

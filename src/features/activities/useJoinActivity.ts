@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -13,6 +14,7 @@ export interface JoinActivityInput {
 }
 
 export function useJoinActivity() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { user } = useAuth()
 
@@ -50,9 +52,9 @@ export function useJoinActivity() {
       }
       const msg = typeof err === 'object' && err !== null && 'message' in err
         ? String((err as { message: unknown }).message)
-        : 'Nie udało się dołączyć'
+        : t('common.genericError')
       if (msg.includes('unique') || msg.includes('już jesteś')) {
-        toast.error('Już jesteś zapisany na tę aktywność')
+        toast.error(t('activity.alreadyJoined'))
       } else {
         toast.error(msg)
       }
@@ -63,7 +65,7 @@ export function useJoinActivity() {
       queryClient.invalidateQueries({ queryKey: ['my-current-activity'] })
       queryClient.invalidateQueries({ queryKey: ['my-activities'] })
       queryClient.invalidateQueries({ queryKey: ['my-joined-ids'] })
-      toast.success('Dołączyłeś do aktywności!')
+      toast.success(t('activity.joined'))
     },
   })
 }

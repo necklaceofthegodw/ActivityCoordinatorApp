@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import type { MyActivitiesResult } from './useMyActivities'
 
 export function useDeleteActivity() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { user } = useAuth()
 
@@ -45,7 +47,7 @@ export function useDeleteActivity() {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
       queryClient.invalidateQueries({ queryKey: ['my-current-activity'] })
       queryClient.invalidateQueries({ queryKey: ['my-activities'] })
-      toast.success('Aktywność została anulowana')
+      toast.success(t('activity.cancelled'))
     },
   })
 }

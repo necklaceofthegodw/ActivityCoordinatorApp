@@ -1,16 +1,25 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useProfile } from '@/features/profile/useProfile'
 import { FlappyBirdGame } from './flappy-bird'
+import type { GameLabels } from './flappy-bird'
 
 export function FlappyBird() {
+  const { t } = useTranslation()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const gameRef = useRef<FlappyBirdGame | null>(null)
   const { user } = useAuth()
   const { data: profile } = useProfile(user?.id ?? null)
   const queryClient = useQueryClient()
+
+  const labels: GameLabels = {
+    start: t('game.start'),
+    score: (s) => t('game.score', { score: s }),
+    gameOver: (b) => t('game.gameOver', { best: b }),
+  }
 
   async function saveHighscore(score: number) {
     if (!user) return
@@ -31,7 +40,7 @@ export function FlappyBird() {
       canvas.width = canvas.offsetWidth
       canvas.height = canvas.offsetHeight
       gameRef.current?.destroy()
-      gameRef.current = new FlappyBirdGame(canvas, initialBest, saveHighscore)
+      gameRef.current = new FlappyBirdGame(canvas, initialBest, saveHighscore, labels)
     }
 
     resizeCanvas()

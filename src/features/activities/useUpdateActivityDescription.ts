@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 
 export function useUpdateActivityDescription() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -15,7 +17,7 @@ export function useUpdateActivityDescription() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
-      toast.success('Opis zaktualizowany')
+      toast.success(t('activity.descriptionUpdated'))
     },
     onError: (err: Error) => {
       toast.error(err.message)

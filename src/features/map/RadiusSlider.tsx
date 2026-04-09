@@ -1,12 +1,16 @@
+import { useTranslation } from 'react-i18next'
+
 interface Props {
   value: number
   onChange: (km: number) => void
 }
 
 export function RadiusSlider({ value, onChange }: Props) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex items-center gap-3">
-      <span className="shrink-0 text-xs text-gray-500">Zasięg</span>
+      <span className="shrink-0 text-xs text-gray-500">{t('map.radius')}</span>
       <input
         type="range"
         min={1}

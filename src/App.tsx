@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider'
@@ -29,6 +30,7 @@ function ActivityLinkRoute() {
 }
 
 function MapPage() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
@@ -100,7 +102,7 @@ function MapPage() {
         <button
           onClick={() => setShowProfile(true)}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition hover:bg-gray-50"
-          aria-label="Mój profil"
+          aria-label={t('profile.myProfile')}
         >
           <svg className="h-5 w-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

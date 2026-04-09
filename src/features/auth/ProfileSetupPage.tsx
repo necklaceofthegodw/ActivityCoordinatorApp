@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,15 +10,16 @@ import { useAuth } from './AuthProvider'
 const profileSchema = z.object({
   nickname: z
     .string()
-    .min(3, 'Minimum 3 znaki')
-    .max(30, 'Maksimum 30 znaków')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Tylko litery, cyfry, _ i -'),
-  bio: z.string().max(160, 'Maksimum 160 znaków').optional(),
+    .min(3, 'setup.nicknameMin')
+    .max(30, 'setup.nicknameMax')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'setup.nicknamePattern'),
+  bio: z.string().max(160, 'setup.bioMax').optional(),
 })
 
 type ProfileForm = z.infer<typeof profileSchema>
 
 export default function ProfileSetupPage() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -32,7 +34,7 @@ export default function ProfileSetupPage() {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('Avatar musi być mniejszy niż 2MB')
+      toast.error(t('setup.avatarTooLarge'))
       return
     }
     setAvatarFile(file)
@@ -54,7 +56,7 @@ export default function ProfileSetupPage() {
           .upload(path, avatarFile, { upsert: true })
 
         if (uploadError) {
-          toast.error('Nie udało się wgrać avatara — profil zostanie utworzony bez zdjęcia')
+          toast.error(t('setup.avatarUploadFail'))
         } else {
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
@@ -71,7 +73,7 @@ export default function ProfileSetupPage() {
 
       if (error) {
         if (error.code === '23505') {
-          setError('nickname', { message: 'Ten nickname jest już zajęty' })
+          setError('nickname', { message: t('setup.nicknameTaken') })
           return
         }
         throw error
@@ -80,7 +82,7 @@ export default function ProfileSetupPage() {
       // Trigger auth state refresh so AuthProvider picks up the new profile
       await supabase.auth.refreshSession()
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Coś poszło nie tak'
+      const message = err instanceof Error ? err.message : t('common.genericError')
       toast.error(message)
     } finally {
       setIsSubmitting(false)
@@ -90,8 +92,8 @@ export default function ProfileSetupPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm">
-        <h1 className="mb-1 text-2xl font-bold text-gray-900">Skonfiguruj profil</h1>
-        <p className="mb-6 text-sm text-gray-500">Inni uczestnicy zobaczą te informacje</p>
+        <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('setup.title')}</h1>
+        <p className="mb-6 text-sm text-gray-500">{t('setup.subtitle')}</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Avatar */}
@@ -107,7 +109,7 @@ export default function ProfileSetupPage() {
                 <span className="flex h-full w-full items-center justify-center text-3xl text-gray-400">+</span>
               )}
             </button>
-            <span className="text-xs text-gray-400">Dodaj zdjęcie (opcjonalne)</span>
+            <span className="text-xs text-gray-400">{t('setup.addPhoto')}</span>
             <input
               ref={fileInputRef}
               type="file"
@@ -119,25 +121,25 @@ export default function ProfileSetupPage() {
 
           {/* Nickname */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Nickname *</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('setup.nickname')}</label>
             <input
               {...register('nickname')}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              placeholder="np. jan_kowalski"
+              placeholder={t('setup.nicknamePlaceholder')}
             />
-            {errors.nickname && <p className="mt-1 text-xs text-red-500">{errors.nickname.message}</p>}
+            {errors.nickname && <p className="mt-1 text-xs text-red-500">{t(errors.nickname.message!)}</p>}
           </div>
 
           {/* Bio */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Bio (opcjonalne)</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{t('setup.bio')}</label>
             <textarea
               {...register('bio')}
               rows={3}
               className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              placeholder="Powiedz coś o sobie..."
+              placeholder={t('setup.bioPlaceholder')}
             />
-            {errors.bio && <p className="mt-1 text-xs text-red-500">{errors.bio.message}</p>}
+            {errors.bio && <p className="mt-1 text-xs text-red-500">{t(errors.bio.message!)}</p>}
           </div>
 
           <button
@@ -145,7 +147,7 @@ export default function ProfileSetupPage() {
             disabled={isSubmitting}
             className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
           >
-            {isSubmitting ? 'Zapisywanie...' : 'Gotowe — pokaż mi mapę'}
+            {isSubmitting ? t('common.saving') : t('setup.submit')}
           </button>
         </form>
       </div>
