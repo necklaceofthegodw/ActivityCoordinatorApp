@@ -52,7 +52,7 @@ export default function VerifyPage() {
 
   function skipForNow() {
     sessionStorage.setItem('verificationPending', 'true')
-    navigate('/')
+    navigate('/', { state: { openProfile: !profile?.avatar_url } })
   }
 
   async function startCamera() {

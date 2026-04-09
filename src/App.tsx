@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
-import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider'
 import LoginPage from '@/features/auth/LoginPage'
 import ProfileSetupPage from '@/features/auth/ProfileSetupPage'
@@ -35,6 +35,7 @@ function MapPage() {
   const { t } = useTranslation()
   const { user, profile } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const verificationPending = sessionStorage.getItem('verificationPending') === 'true'
   const queryClient = useQueryClient()
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
@@ -44,7 +45,9 @@ function MapPage() {
   const myActivities = myActivitiesResult?.activities ?? []
   const isAtLimit = myActivitiesResult?.isAtLimit ?? false
   const [chatActivity, setChatActivity] = useState<Activity | null>(null)
-  const [showProfile, setShowProfile] = useState(false)
+  const [showProfile, setShowProfile] = useState(
+    () => (location.state as { openProfile?: boolean } | null)?.openProfile === true
+  )
   const [pendingActivityId, setPendingActivityId] = useState<string | null>(() => {
     const id = sessionStorage.getItem('pendingActivityId')
     if (id) sessionStorage.removeItem('pendingActivityId')
@@ -171,6 +174,7 @@ function MapPage() {
 
 function AppRoutes() {
   const { session, profile, isLoading } = useAuth()
+  useLocation() // subscribe to location changes so sessionStorage is re-read on every navigation
   const verificationPending = sessionStorage.getItem('verificationPending') === 'true'
 
   if (isLoading) {
