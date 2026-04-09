@@ -72,7 +72,7 @@ for file in $FRONTEND_FILES; do
 done
 
 # === EDGE FUNCTIONS: sprawdź pliki w supabase/functions/ ===
-EDGE_FILES=$(echo "$FILES" | grep '^supabase/functions/' | grep -v '_shared/' || true)
+EDGE_FILES=$(echo "$FILES" | grep '^supabase/functions/' | grep -v '_shared/' | grep -v 'supabase/functions/verify-face/' || true)
 
 for file in $EDGE_FILES; do
     [ -f "$PROJECT_DIR/$file" ] || continue

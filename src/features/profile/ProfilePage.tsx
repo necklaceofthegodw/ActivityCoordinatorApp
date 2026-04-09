@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -32,6 +32,8 @@ export function ProfilePage({ userId, onClose }: Props) {
   const { data: history = [] } = useActivityHistory(userId)
   const [isEditing, setIsEditing] = useState(false)
   const [showReport, setShowReport] = useState(false)
+  const [showAvatarWarning, setShowAvatarWarning] = useState(false)
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
 
@@ -56,25 +58,69 @@ export function ProfilePage({ userId, onClose }: Props) {
     values: { bio: profile?.bio ?? '' },
   })
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const validateAvatarFace = useCallback(async (publicUrl: string): Promise<boolean> => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return false
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-face`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ action: 'validate-avatar', avatarUrl: publicUrl }),
+        }
+      )
+      if (!res.ok) return true // Edge Function unavailable — allow upload
+      const data = await res.json()
+      return data.faceDetected === true
+    } catch {
+      return true // network error — allow upload
+    }
+  }, [user])
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !user) return
     if (file.size > 2 * 1024 * 1024) { toast.error(t('profile.avatarMax')); return }
 
+    if (profile?.is_verified) {
+      // Show inline confirmation instead of window.confirm (PWA-safe)
+      setPendingAvatarFile(file)
+      setShowAvatarWarning(true)
+      return
+    }
+
+    void processAvatarUpload(file)
+  }
+
+  async function processAvatarUpload(file: File) {
+    if (!user) return
     const ext = file.name.split('.').pop()
+    const path = `${user.id}/avatar.${ext}`
     const { error } = await supabase.storage
       .from('avatars')
-      .upload(`${user.id}/avatar.${ext}`, file, { upsert: true })
+      .upload(path, file, { upsert: true })
 
     if (error) { toast.error(t('profile.uploadError')); return }
 
     const { data: { publicUrl } } = supabase.storage
       .from('avatars')
-      .getPublicUrl(`${user.id}/avatar.${ext}`)
+      .getPublicUrl(path)
 
-    await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
+    const faceDetected = await validateAvatarFace(publicUrl)
+
+    if (!faceDetected) {
+      await supabase.storage.from('avatars').remove([path])
+      toast.error(t('profile.avatarNoFace'))
+      return
+    }
+
+    // Single update — set new avatar and reset verification in one call
+    await supabase.from('profiles').update({ avatar_url: publicUrl, is_verified: false }).eq('id', user.id)
     queryClient.invalidateQueries({ queryKey: ['profile', userId] })
     toast.success(t('profile.avatarUpdated'))
+    // Refresh session → AuthProvider re-fetches profile → routing detects is_verified=false → /verify
+    await supabase.auth.refreshSession()
   }
 
   async function onSave(data: EditForm) {
@@ -314,6 +360,33 @@ export function ProfilePage({ userId, onClose }: Props) {
           reportedNickname={profile.nickname}
           onClose={() => setShowReport(false)}
         />
+      )}
+
+      {showAvatarWarning && pendingAvatarFile && (
+        <div className="absolute inset-0 z-[1010] flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-base font-semibold text-gray-900">{t('profile.avatarChangeTitle')}</h3>
+            <p className="mb-5 text-sm text-gray-600">{t('profile.avatarChangeWarning')}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowAvatarWarning(false); setPendingAvatarFile(null) }}
+                className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-700"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => {
+                  setShowAvatarWarning(false)
+                  void processAvatarUpload(pendingAvatarFile)
+                  setPendingAvatarFile(null)
+                }}
+                className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white"
+              >
+                {t('common.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )

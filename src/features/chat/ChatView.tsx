@@ -12,6 +12,7 @@ import { useDeleteActivity } from '@/features/activities/useDeleteActivity'
 import { useUpdateActivityDescription } from '@/features/activities/useUpdateActivityDescription'
 import { useParticipants } from '@/features/activities/useParticipants'
 import { useActivityById } from '@/features/activities/useActivityById'
+import { useProfile } from '@/features/profile/useProfile'
 import { CATEGORY_MAP } from '@/lib/categories'
 import type { Database } from '@/lib/database.types'
 
@@ -42,6 +43,7 @@ export function ChatView({ activity, onClose }: Props) {
   const updateDesc = useUpdateActivityDescription()
   const { data: participants = [] } = useParticipants(activity.id)
   const { data: fullActivity } = useActivityById(activity.id)
+  const { data: organizerProfile } = useProfile(activity.organizer_id)
   const act = fullActivity ?? activity
 
   const isHost = activity.organizer_id === user?.id
@@ -185,6 +187,9 @@ export function ChatView({ activity, onClose }: Props) {
                   </div>
                 )}
                 <span className="flex-1 text-sm font-medium text-gray-800">{act.organizer_nickname}</span>
+                {organizerProfile?.is_verified && (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white" title={t('verify.verified')}>✓</span>
+                )}
                 <span className="text-xs text-blue-600 font-medium">{t('chat.organizer')}</span>
               </button>
 
@@ -202,7 +207,10 @@ export function ChatView({ activity, onClose }: Props) {
                       {p.nickname[0]?.toUpperCase() ?? '?'}
                     </div>
                   )}
-                  <span className="text-sm text-gray-800">{p.nickname}</span>
+                  <span className="flex-1 text-sm text-gray-800">{p.nickname}</span>
+                  {p.isVerified && (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white" title={t('verify.verified')}>✓</span>
+                  )}
                 </button>
               ))}
             </div>

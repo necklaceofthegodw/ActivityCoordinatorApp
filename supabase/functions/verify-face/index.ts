@@ -7,6 +7,7 @@ import {
 
 const SIMILARITY_THRESHOLD = Number(Deno.env.get('FACE_SIMILARITY_THRESHOLD') ?? '85')
 const MAX_DAILY_ATTEMPTS = 3
+const MAX_SELFIE_BASE64_LENGTH = 4 * 1024 * 1024 // ~3 MB image after base64 overhead
 
 function getRekognitionClient(): RekognitionClient {
   return new RekognitionClient({
@@ -44,27 +45,37 @@ Deno.serve(async (req: Request) => {
 
   if (authError || !user) return json({ error: 'Unauthorized' }, 401)
 
-  let body: { action: string; selfie?: string }
+  let body: { action: string; selfie?: string; avatarUrl?: string }
   try {
     body = await req.json()
   } catch {
     return json({ error: 'Invalid JSON' }, 400)
   }
 
+  // Validate action field
+  if (body.action !== 'validate-avatar' && body.action !== 'verify') {
+    return json({ error: 'Unknown action' }, 400)
+  }
+
   const rekognition = getRekognitionClient()
 
   // ── action: validate-avatar ──────────────────────────────────────────────
   if (body.action === 'validate-avatar') {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('avatar_url')
-      .eq('id', user.id)
-      .single()
+    let avatarUrl: string | null = body.avatarUrl ?? null
 
-    if (!profile?.avatar_url) return json({ faceDetected: false, reason: 'no_avatar' })
+    if (!avatarUrl) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single()
+      avatarUrl = profile?.avatar_url ?? null
+    }
+
+    if (!avatarUrl) return json({ faceDetected: false, reason: 'no_avatar' })
 
     try {
-      const avatarRes = await fetch(profile.avatar_url)
+      const avatarRes = await fetch(avatarUrl)
       if (!avatarRes.ok) return json({ faceDetected: false, reason: 'fetch_error' })
       const avatarBytes = new Uint8Array(await avatarRes.arrayBuffer())
 
@@ -80,94 +91,105 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── action: verify ───────────────────────────────────────────────────────
-  if (body.action === 'verify') {
-    if (!body.selfie) return json({ error: 'Missing selfie' }, 400)
+  if (!body.selfie) return json({ error: 'Missing selfie' }, 400)
+  if (body.selfie.length > MAX_SELFIE_BASE64_LENGTH) {
+    return json({ error: 'Selfie too large' }, 400)
+  }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('avatar_url, is_verified, verification_attempts, last_attempt_at')
-      .eq('id', user.id)
-      .single()
+  // Decode selfie base64 — validate before doing anything else
+  let selfieBytes: Uint8Array
+  try {
+    selfieBytes = Uint8Array.from(atob(body.selfie), c => c.charCodeAt(0))
+  } catch {
+    return json({ error: 'Invalid selfie format' }, 400)
+  }
 
-    if (!profile) return json({ error: 'Profile not found' }, 404)
-    if (profile.is_verified) return json({ verified: true })
-    if (!profile.avatar_url) return json({ verified: false, reason: 'no_avatar' })
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('avatar_url, is_verified, verification_attempts, last_attempt_at')
+    .eq('id', user.id)
+    .single()
 
-    // Daily limit — reset counter if last attempt was on a previous day
-    const today = new Date().toISOString().slice(0, 10)
-    const lastDay = profile.last_attempt_at?.slice(0, 10) ?? ''
-    const currentAttempts = lastDay === today ? profile.verification_attempts : 0
+  if (!profile) return json({ error: 'Profile not found' }, 404)
+  if (profile.is_verified) return json({ verified: true })
+  if (!profile.avatar_url) return json({ verified: false, reason: 'no_avatar' })
 
-    if (currentAttempts >= MAX_DAILY_ATTEMPTS) {
-      const retryAfter = new Date()
-      retryAfter.setUTCHours(24, 0, 0, 0)
-      return json({
-        verified: false,
-        reason: 'limit_reached',
-        retryAfter: retryAfter.toISOString(),
-      })
-    }
+  // Daily limit — reset counter if last attempt was on a previous day
+  const today = new Date().toISOString().slice(0, 10)
+  const lastDay = profile.last_attempt_at?.slice(0, 10) ?? ''
+  const currentAttempts = lastDay === today ? profile.verification_attempts : 0
 
-    // Fetch avatar bytes
-    let avatarBytes: Uint8Array
-    try {
-      const avatarRes = await fetch(profile.avatar_url)
-      if (!avatarRes.ok) throw new Error('fetch_failed')
-      avatarBytes = new Uint8Array(await avatarRes.arrayBuffer())
-    } catch {
-      return json({ error: 'AWS unavailable' }, 503)
-    }
-
-    // Decode selfie base64
-    const selfieBytes = Uint8Array.from(atob(body.selfie), c => c.charCodeAt(0))
-
-    // Increment attempt counter before calling AWS
-    const newAttempts = currentAttempts + 1
-    await supabase
-      .from('profiles')
-      .update({ verification_attempts: newAttempts, last_attempt_at: new Date().toISOString() })
-      .eq('id', user.id)
-
-    // Compare faces
-    let similarity = 0
-    let matched = false
-    try {
-      const result = await rekognition.send(new CompareFacesCommand({
-        SourceImage: { Bytes: selfieBytes },
-        TargetImage: { Bytes: avatarBytes },
-        SimilarityThreshold: SIMILARITY_THRESHOLD,
-        QualityFilter: 'HIGH',
-      }))
-      similarity = result.FaceMatches?.[0]?.Similarity ?? 0
-      matched = (result.FaceMatches?.length ?? 0) > 0
-    } catch (err: unknown) {
-      // InvalidParameterException = no face detected in one of the images
-      const name = (err as { name?: string }).name ?? ''
-      if (name === 'InvalidParameterException') {
-        return json({
-          verified: false,
-          reason: 'no_face',
-          attemptsLeft: MAX_DAILY_ATTEMPTS - newAttempts,
-        })
-      }
-      return json({ error: 'AWS unavailable' }, 503)
-    }
-
-    if (matched) {
-      await supabase
-        .from('profiles')
-        .update({ is_verified: true })
-        .eq('id', user.id)
-      return json({ verified: true, similarity })
-    }
-
+  if (currentAttempts >= MAX_DAILY_ATTEMPTS) {
+    const retryAfter = new Date()
+    retryAfter.setUTCHours(24, 0, 0, 0)
     return json({
       verified: false,
-      reason: 'no_match',
-      similarity,
-      attemptsLeft: MAX_DAILY_ATTEMPTS - newAttempts,
+      reason: 'limit_reached',
+      retryAfter: retryAfter.toISOString(),
     })
   }
 
-  return json({ error: 'Unknown action' }, 400)
+  // Fetch avatar bytes — before incrementing attempts
+  let avatarBytes: Uint8Array
+  try {
+    const avatarRes = await fetch(profile.avatar_url)
+    if (!avatarRes.ok) return json({ error: 'Avatar unavailable' }, 424)
+    avatarBytes = new Uint8Array(await avatarRes.arrayBuffer())
+  } catch {
+    return json({ error: 'Avatar unavailable' }, 424)
+  }
+
+  // Compare faces via AWS Rekognition
+  let similarity = 0
+  let matched = false
+  try {
+    const result = await rekognition.send(new CompareFacesCommand({
+      SourceImage: { Bytes: selfieBytes },
+      TargetImage: { Bytes: avatarBytes },
+      SimilarityThreshold: SIMILARITY_THRESHOLD,
+      QualityFilter: 'HIGH',
+    }))
+    similarity = result.FaceMatches?.[0]?.Similarity ?? 0
+    matched = (result.FaceMatches?.length ?? 0) > 0
+  } catch (err: unknown) {
+    // InvalidParameterException = no face detected or image quality too low
+    const name = (err as { name?: string }).name ?? ''
+    if (name === 'InvalidParameterException') {
+      // Increment attempt even for no_face — prevents abuse via low-quality images
+      const newAttempts = currentAttempts + 1
+      await supabase
+        .from('profiles')
+        .update({ verification_attempts: newAttempts, last_attempt_at: new Date().toISOString() })
+        .eq('id', user.id)
+      return json({
+        verified: false,
+        reason: 'no_face',
+        attemptsLeft: MAX_DAILY_ATTEMPTS - newAttempts,
+      })
+    }
+    // AWS unavailable — do NOT increment attempts
+    return json({ error: 'AWS unavailable' }, 503)
+  }
+
+  // Increment attempts only after a real comparison result (match or no_match)
+  const newAttempts = currentAttempts + 1
+  await supabase
+    .from('profiles')
+    .update({ verification_attempts: newAttempts, last_attempt_at: new Date().toISOString() })
+    .eq('id', user.id)
+
+  if (matched) {
+    await supabase
+      .from('profiles')
+      .update({ is_verified: true })
+      .eq('id', user.id)
+    return json({ verified: true, similarity })
+  }
+
+  return json({
+    verified: false,
+    reason: 'no_match',
+    similarity,
+    attemptsLeft: MAX_DAILY_ATTEMPTS - newAttempts,
+  })
 })

@@ -5,6 +5,7 @@ export function useProfile(userId: string | null) {
   return useQuery({
     queryKey: ['profile', userId],
     enabled: !!userId,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')

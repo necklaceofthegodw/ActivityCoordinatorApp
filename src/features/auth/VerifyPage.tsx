@@ -28,7 +28,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 export default function VerifyPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user, profile } = useAuth()
   const navigate = useNavigate()
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -42,6 +42,11 @@ export default function VerifyPage() {
       streamRef.current?.getTracks().forEach((t) => t.stop())
     }
   }, [])
+
+  function skipForNow() {
+    sessionStorage.setItem('verificationPending', 'true')
+    navigate('/')
+  }
 
   async function startCamera() {
     try {
@@ -63,13 +68,23 @@ export default function VerifyPage() {
     const canvas = canvasRef.current
     if (!video || !canvas) return
 
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      setState({ status: 'error', reason: 'camera' })
+      return
+    }
+
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
-    canvas.getContext('2d')!.drawImage(video, 0, 0)
+    ctx.drawImage(video, 0, 0)
 
     canvas.toBlob((blob) => {
-      if (!blob) return
-      const dataUrl = canvas.toDataURL('image/jpeg')
+      if (!blob) {
+        setState({ status: 'error', reason: 'unknown' })
+        return
+      }
+      // Use createObjectURL for preview — avoids double JPEG encoding
+      const dataUrl = URL.createObjectURL(blob)
       streamRef.current?.getTracks().forEach((t) => t.stop())
       streamRef.current = null
       setState({ status: 'captured', dataUrl, blob })
@@ -106,6 +121,7 @@ export default function VerifyPage() {
       const data = await res.json()
 
       if (data.verified) {
+        sessionStorage.removeItem('verificationPending')
         setState({ status: 'success' })
         // Refresh session so AuthProvider re-fetches profile with is_verified = true
         await supabase.auth.refreshSession()
@@ -173,11 +189,24 @@ export default function VerifyPage() {
     )
   }
 
+  const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US'
+
   return (
     <div className="flex min-h-screen flex-col items-center bg-gray-50 px-4 pt-10">
       <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-2xl font-bold text-gray-900">{t('verify.title')}</h1>
-        <p className="mb-6 text-sm text-gray-500">{t('verify.subtitle')}</p>
+        {/* Header with skip */}
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{t('verify.title')}</h1>
+            <p className="mt-1 text-sm text-gray-500">{t('verify.subtitle')}</p>
+          </div>
+          <button
+            onClick={skipForNow}
+            className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-400 hover:bg-gray-100"
+          >
+            {t('verify.skipForNow')}
+          </button>
+        </div>
 
         {/* Camera / Preview */}
         <div className="relative mb-4 overflow-hidden rounded-2xl bg-black" style={{ aspectRatio: '4/3' }}>
@@ -224,7 +253,18 @@ export default function VerifyPage() {
         {state.status === 'limit_reached' && (
           <div className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
             <p>{t('verify.limitReached')}</p>
+            {state.retryAfter && (
+              <p className="mt-1 text-xs font-medium">
+                {t('verify.retryAfter', { time: new Date(state.retryAfter).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}
+              </p>
+            )}
             <p className="mt-2 text-xs">{t('verify.changeAvatarHint')}</p>
+            <button
+              onClick={() => navigate('/')}
+              className="mt-3 w-full rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white"
+            >
+              {t('verify.goChangeAvatar')}
+            </button>
           </div>
         )}
 

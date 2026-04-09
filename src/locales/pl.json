@@ -1,5 +1,6 @@
 {
   "common.cancel": "Anuluj",
+  "common.confirm": "Potwierdź",
   "common.save": "Zapisz",
   "common.saving": "Zapisywanie...",
   "common.close": "Zamknij",
@@ -40,6 +41,7 @@
   "setup.nicknameMax": "Maksimum 30 znaków",
   "setup.nicknamePattern": "Tylko litery, cyfry, _ i -",
   "setup.bioMax": "Maksimum 160 znaków",
+  "setup.avatarNoFace": "Nie wykryto twarzy na zdjęciu — użyj wyraźnego zdjęcia swojej twarzy",
 
   "profile.myProfile": "Mój profil",
   "profile.userProfile": "Profil użytkownika",
@@ -60,6 +62,9 @@
   "profile.saveFailed": "Nie udało się zapisać",
   "profile.saved": "Profil zapisany",
   "profile.bioMax": "Max. 160 znaków",
+  "profile.avatarChangeTitle": "Zmień zdjęcie profilowe",
+  "profile.avatarChangeWarning": "Zmiana zdjęcia profilowego cofnie Twoją weryfikację — będziesz musiał zweryfikować się ponownie.",
+  "profile.avatarNoFace": "Nie wykryto twarzy na zdjęciu — użyj wyraźnego zdjęcia swojej twarzy",
   "profile.language": "Język",
   "profile.languageAuto": "Z lokalizacji",
   "profile.languageEnglish": "English",
@@ -164,6 +169,10 @@
   "verify.notVerifiedCreate": "Musisz zweryfikować konto aby tworzyć aktywności.",
   "verify.notVerifiedJoin": "Musisz zweryfikować konto aby dołączyć do aktywności.",
   "verify.goVerify": "Zweryfikuj teraz",
+  "verify.verified": "Zweryfikowany",
+  "verify.skipForNow": "Pomiń na razie",
+  "verify.retryAfter": "Spróbuj ponownie o {{time}}",
+  "verify.goChangeAvatar": "Zmień zdjęcie profilowe",
 
   "map.radius": "Zasięg",
   "map.chooseCategories": "Wybierz kategorie",

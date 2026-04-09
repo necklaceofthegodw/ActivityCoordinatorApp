@@ -1,5 +1,6 @@
 {
   "common.cancel": "Cancel",
+  "common.confirm": "Confirm",
   "common.save": "Save",
   "common.saving": "Saving...",
   "common.close": "Close",
@@ -40,6 +41,7 @@
   "setup.nicknameMax": "Maximum 30 characters",
   "setup.nicknamePattern": "Only letters, numbers, _ and -",
   "setup.bioMax": "Maximum 160 characters",
+  "setup.avatarNoFace": "No face detected in the photo — please use a clear photo of your face",
 
   "profile.myProfile": "My profile",
   "profile.userProfile": "User profile",
@@ -60,6 +62,9 @@
   "profile.saveFailed": "Failed to save",
   "profile.saved": "Profile saved",
   "profile.bioMax": "Max. 160 characters",
+  "profile.avatarChangeTitle": "Change profile photo",
+  "profile.avatarChangeWarning": "Changing your profile photo will revoke your verification — you will need to verify again.",
+  "profile.avatarNoFace": "No face detected in the photo — please use a clear photo of your face",
   "profile.language": "Language",
   "profile.languageAuto": "Auto-detect",
   "profile.languageEnglish": "English",
@@ -164,6 +169,10 @@
   "verify.notVerifiedCreate": "You need to verify your account to create activities.",
   "verify.notVerifiedJoin": "You need to verify your account to join activities.",
   "verify.goVerify": "Verify now",
+  "verify.verified": "Verified",
+  "verify.skipForNow": "Skip for now",
+  "verify.retryAfter": "Try again at {{time}}",
+  "verify.goChangeAvatar": "Change profile photo",
 
   "map.radius": "Radius",
   "map.chooseCategories": "Choose categories",

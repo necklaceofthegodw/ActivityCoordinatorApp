@@ -16,12 +16,13 @@ interface Props {
   activity: Activity | null
   onClose: () => void
   onChatOpen: (activityId: string) => void
+  onNavigateToVerify: () => void
   isAtLimit: boolean
 }
 
-export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Props) {
+export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerify, isAtLimit }: Props) {
   const { t, i18n } = useTranslation()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const join = useJoinActivity()
   const leave = useLeaveActivity()
   const deleteActivity = useDeleteActivity()
@@ -73,6 +74,9 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
             </div>
           )}
           <span className="text-sm text-gray-500">{activity.organizer_nickname}</span>
+          {organizerProfile?.is_verified && (
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white" title={t('verify.verified')}>✓</span>
+          )}
           {organizerProfile && (() => {
             const tierInfo = getTierInfo(organizerProfile.tier)
             return (
@@ -118,6 +122,13 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
               >
                 💬 {t('activity.openChat')}
               </button>
+            ) : profile?.is_verified === false ? (
+              <button
+                onClick={() => { onClose(); onNavigateToVerify() }}
+                className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+              >
+                {t('verify.goVerify')}
+              </button>
             ) : isFull ? (
               <button
                 disabled
@@ -148,6 +159,11 @@ export function ActivitySheet({ activity, onClose, onChatOpen, isAtLimit }: Prop
               {t('common.close')}
             </button>
           </div>
+
+          {/* Verification hint */}
+          {!hasAccess && profile?.is_verified === false && (
+            <p className="text-center text-xs text-gray-400">{t('verify.notVerifiedJoin')}</p>
+          )}
 
           {/* Leave — participant only (not organizer) */}
           {isParticipant && !isOrganizer && (

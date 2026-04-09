@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider'
@@ -95,7 +96,14 @@ function MapPage() {
       )}
       <MapView
         onActivitySelect={handleActivitySelect}
-        onCreateActivity={setCreateLocation}
+        onCreateActivity={(loc) => {
+          if (!profile?.is_verified) {
+            toast.error(t('verify.notVerifiedCreate'))
+            navigate('/verify')
+            return
+          }
+          setCreateLocation(loc)
+        }}
         pinnedCategories={pinnedCategories}
         onPinnedChange={setPinnedCategories}
         focusLocation={createLocation ?? pendingFocusLocation}
@@ -106,6 +114,7 @@ function MapPage() {
         activity={selectedActivity}
         onClose={() => { setSelectedActivity(null); setFocusTrigger((n) => n + 1) }}
         onChatOpen={handleChatOpen}
+        onNavigateToVerify={() => navigate('/verify')}
         isAtLimit={isAtLimit}
       />
 

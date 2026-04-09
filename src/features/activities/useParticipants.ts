@@ -5,6 +5,7 @@ export interface Participant {
   userId: string
   nickname: string
   avatarUrl: string | null
+  isVerified: boolean
 }
 
 export function useParticipants(activityId: string) {
@@ -14,7 +15,7 @@ export function useParticipants(activityId: string) {
     queryFn: async (): Promise<Participant[]> => {
       const { data, error } = await supabase
         .from('participants')
-        .select('user_id, profiles(nickname, avatar_url)')
+        .select('user_id, profiles(nickname, avatar_url, is_verified)')
         .eq('activity_id', activityId)
 
       if (error) throw error
@@ -25,6 +26,7 @@ export function useParticipants(activityId: string) {
           userId: row.user_id,
           nickname: profile?.nickname ?? 'Użytkownik',
           avatarUrl: profile?.avatar_url ?? null,
+          isVerified: profile?.is_verified ?? false,
         }
       })
     },
