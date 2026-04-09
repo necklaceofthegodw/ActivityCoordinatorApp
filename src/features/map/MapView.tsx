@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useUserLocation } from './useUserLocation'
@@ -85,7 +85,7 @@ function RecenterOnPin({ lat, lng }: { lat: number; lng: number }) {
     const zoom = map.getZoom()
     const mapH = map.getSize().y
     const pinPx = map.project([lat, lng], zoom)
-    const centerPx = L.point(pinPx.x, pinPx.y + mapH / 3)
+    const centerPx = L.point(pinPx.x, pinPx.y + mapH / 4)
     map.setView(map.unproject(centerPx, zoom), zoom, { animate: true })
   }, [lat, lng])
   return null
@@ -124,11 +124,9 @@ function MapClickHandler({
 interface ActivityMarkerProps {
   activity: Activity
   onSelect: (activity: Activity) => void
-  locale: string
-  peopleLabel: string
 }
 
-function ActivityMarkerInner({ activity, onSelect, locale, peopleLabel }: ActivityMarkerProps) {
+function ActivityMarkerInner({ activity, onSelect }: ActivityMarkerProps) {
   const eventHandlers = useMemo(
     () => ({ click: () => onSelect(activity) }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,21 +137,7 @@ function ActivityMarkerInner({ activity, onSelect, locale, peopleLabel }: Activi
       position={[activity.lat, activity.lng]}
       icon={ACTIVITY_ICONS[activity.category]}
       eventHandlers={eventHandlers}
-    >
-      <Popup>
-        <div className="min-w-[160px]">
-          <p className="font-semibold">{activity.title}</p>
-          <p className="text-xs text-gray-500">
-            {new Date(activity.scheduled_at).toLocaleString(locale, {
-              weekday: 'short', hour: '2-digit', minute: '2-digit',
-            })}
-          </p>
-          <p className="text-xs text-gray-500">
-            {activity.current_participants}/{activity.max_participants} {peopleLabel}
-          </p>
-        </div>
-      </Popup>
-    </Marker>
+    />
   )
 }
 
@@ -163,9 +147,7 @@ const ActivityMarker = React.memo(ActivityMarkerInner, (prev, next) =>
   prev.activity.lng === next.activity.lng &&
   prev.activity.current_participants === next.activity.current_participants &&
   prev.activity.title === next.activity.title &&
-  prev.onSelect === next.onSelect &&
-  prev.locale === next.locale &&
-  prev.peopleLabel === next.peopleLabel,
+  prev.onSelect === next.onSelect,
 )
 
 interface Props {
@@ -177,9 +159,8 @@ interface Props {
 }
 
 export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, onPinnedChange, focusLocation }: Props) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { location, isLoading } = useUserLocation()
-  const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US'
   const [radiusKm, setRadiusKm] = useState(12)
   const [categories, setCategories] = useState<ActivityCategory[]>([])
   const [hasRecentered, setHasRecentered] = useState(false)
@@ -264,19 +245,23 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
             key={activity.id}
             activity={activity}
             onSelect={onActivitySelect}
-            locale={locale}
-            peopleLabel={t('activity.people')}
           />
         ))}
       </MapContainer>
 
-      {/* Top-left controls: radius slider + category filters — hidden while picker is open */}
+      {/* Category icons — top-left corner */}
       {!isPickerOpen && (
-        <div className="absolute left-0 top-0 z-[1000] flex flex-col gap-2 p-3" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.75rem)' }}>
-          <div className="rounded-xl bg-white/95 px-3 py-2 shadow-sm backdrop-blur-sm">
+        <div className="absolute left-0 top-0 z-[1000] p-3" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.75rem)' }}>
+          <CategoryFilter pinned={pinnedCategories} selected={categories} onChange={setCategories} />
+        </div>
+      )}
+
+      {/* Radius slider — centered between category icons and profile button */}
+      {!isPickerOpen && (
+        <div className="absolute left-1/2 top-0 z-[1000] -translate-x-1/2" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 1rem)' }}>
+          <div className="w-36 rounded-xl bg-white/95 px-3 py-2 shadow-sm backdrop-blur-sm">
             <RadiusSlider value={radiusKm} onChange={(km) => { setRadiusKm(km); setHasRecentered(true) }} />
           </div>
-          <CategoryFilter pinned={pinnedCategories} selected={categories} onChange={setCategories} />
         </div>
       )}
 

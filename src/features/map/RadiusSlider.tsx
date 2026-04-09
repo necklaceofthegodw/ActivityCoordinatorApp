@@ -9,8 +9,7 @@ export function RadiusSlider({ value, onChange }: Props) {
   const { t } = useTranslation()
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="shrink-0 text-xs text-gray-500">{t('map.radius')}</span>
+    <div className="flex items-center gap-2">
       <input
         type="range"
         min={1}
@@ -20,7 +19,7 @@ export function RadiusSlider({ value, onChange }: Props) {
         onChange={(e) => onChange(Number(e.target.value))}
         className="h-1.5 w-full cursor-pointer accent-blue-600"
       />
-      <span className="w-10 shrink-0 text-right text-xs font-medium text-gray-700">
+      <span className="w-8 shrink-0 text-right text-xs font-medium text-gray-700">
         {value} km
       </span>
     </div>
