@@ -43,6 +43,13 @@ export default function VerifyPage() {
     }
   }, [])
 
+  // Navigate away once the profile confirms is_verified after a successful submission
+  useEffect(() => {
+    if (state.status === 'success' && profile?.is_verified) {
+      navigate('/')
+    }
+  }, [state.status, profile?.is_verified, navigate])
+
   function skipForNow() {
     sessionStorage.setItem('verificationPending', 'true')
     navigate('/')
@@ -173,14 +180,14 @@ export default function VerifyPage() {
     )
   }
 
-  // No avatar — redirect to profile
+  // No avatar — let user through to set one
   if (!profile?.avatar_url) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-50 px-4">
         <span className="text-4xl">📷</span>
         <p className="max-w-xs text-center text-sm text-gray-600">{t('verify.noAvatar')}</p>
         <button
-          onClick={() => navigate('/')}
+          onClick={skipForNow}
           className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white"
         >
           {t('verify.goToProfile')}
