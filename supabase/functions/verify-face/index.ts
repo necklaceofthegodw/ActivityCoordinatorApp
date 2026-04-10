@@ -39,6 +39,17 @@ Deno.serve(async (req: Request) => {
 
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
+  try {
+    return await handleRequest(req)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('verify-face unhandled error:', message)
+    return json({ error: 'Internal server error', detail: message }, 500)
+  }
+})
+
+async function handleRequest(req: Request): Promise<Response> {
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -157,7 +168,7 @@ Deno.serve(async (req: Request) => {
       SourceImage: { Bytes: selfieBytes },
       TargetImage: { Bytes: avatarBytes },
       SimilarityThreshold: SIMILARITY_THRESHOLD,
-      QualityFilter: 'HIGH',
+      QualityFilter: 'AUTO',
     }))
     similarity = result.FaceMatches?.[0]?.Similarity ?? 0
     matched = (result.FaceMatches?.length ?? 0) > 0
@@ -202,4 +213,4 @@ Deno.serve(async (req: Request) => {
     similarity,
     attemptsLeft: MAX_DAILY_ATTEMPTS - newAttempts,
   })
-})
+}

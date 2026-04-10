@@ -82,6 +82,7 @@ export function ProfilePage({ userId, onClose }: Props) {
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !user) return
+    if (!['image/jpeg', 'image/png'].includes(file.type)) { toast.error(t('profile.avatarInvalidFormat')); return }
     if (file.size > 10 * 1024 * 1024) { toast.error(t('profile.avatarMax')); return }
 
     if (profile?.is_verified) {
@@ -97,19 +98,17 @@ export function ProfilePage({ userId, onClose }: Props) {
   async function processAvatarUpload(file: File) {
     if (!user) return
 
-    let compressedBlob: Blob
-    try {
-      compressedBlob = await compressImage(file)
-    } catch (err) {
-      toast.error(t('profile.uploadError'), { description: err instanceof Error ? err.message : 'compress error' })
-      return
-    }
+    const result = await compressImage(file)
+    // compressImage returns a JPEG Blob on success, or the original File as fallback
+    const isCompressed = result !== file
+    const ext = isCompressed ? 'jpg' : (file.name.split('.').pop() ?? 'jpg')
+    const contentType = isCompressed ? 'image/jpeg' : (file.type || 'image/jpeg')
+    const path = `${user.id}/avatar.${ext}`
+    const uploadFile = new File([result], `avatar.${ext}`, { type: contentType })
 
-    const path = `${user.id}/avatar.jpg`
-    const compressedFile = new File([compressedBlob], 'avatar.jpg', { type: 'image/jpeg' })
     const { error } = await supabase.storage
       .from('avatars')
-      .upload(path, compressedFile, { upsert: true })
+      .upload(path, uploadFile, { upsert: true })
 
     if (error) { toast.error(t('profile.uploadError'), { description: error.message }); return }
 
@@ -240,7 +239,7 @@ export function ProfilePage({ userId, onClose }: Props) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.586l-3 .75.75-3a4 4 0 01.586-1.414z" />
                   </svg>
                 </button>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" className="hidden" onChange={handleAvatarChange} />
               </>
             )}
           </div>

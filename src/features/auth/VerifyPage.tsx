@@ -125,7 +125,19 @@ export default function VerifyPage() {
         return
       }
 
-      const data = await res.json()
+      let data: Record<string, unknown>
+      try {
+        data = await res.json()
+      } catch {
+        // Edge Function returned a non-JSON body (e.g. 500 crash)
+        setState({ status: 'error', reason: 'unknown' })
+        return
+      }
+
+      if (!res.ok) {
+        setState({ status: 'error', reason: 'unknown' })
+        return
+      }
 
       if (data.verified) {
         sessionStorage.removeItem('verificationPending')

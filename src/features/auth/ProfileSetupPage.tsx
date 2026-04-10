@@ -34,6 +34,10 @@ export default function ProfileSetupPage() {
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      toast.error(t('setup.avatarInvalidFormat'))
+      return
+    }
     if (file.size > 10 * 1024 * 1024) {
       toast.error(t('setup.avatarTooLarge'))
       return
@@ -50,20 +54,16 @@ export default function ProfileSetupPage() {
       let avatarUrl: string | null = null
 
       if (avatarFile) {
-        let compressedBlob: Blob
-        try {
-          compressedBlob = await compressImage(avatarFile)
-        } catch (err) {
-          toast.error(t('setup.avatarUploadFail'), { description: err instanceof Error ? err.message : 'compress error' })
-          setIsSubmitting(false)
-          return
-        }
+        const result = await compressImage(avatarFile)
+        const isCompressed = result !== avatarFile
+        const ext = isCompressed ? 'jpg' : (avatarFile.name.split('.').pop() ?? 'jpg')
+        const contentType = isCompressed ? 'image/jpeg' : (avatarFile.type || 'image/jpeg')
+        const path = `${user.id}/avatar.${ext}`
+        const uploadFile = new File([result], `avatar.${ext}`, { type: contentType })
 
-        const path = `${user.id}/avatar.jpg`
-        const compressedFile = new File([compressedBlob], 'avatar.jpg', { type: 'image/jpeg' })
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(path, compressedFile, { upsert: true })
+          .upload(path, uploadFile, { upsert: true })
 
         if (uploadError) {
           toast.error(t('setup.avatarUploadFail'), { description: uploadError.message })
@@ -150,7 +150,7 @@ export default function ProfileSetupPage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png"
               className="hidden"
               onChange={handleAvatarChange}
             />
