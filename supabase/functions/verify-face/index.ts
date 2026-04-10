@@ -59,10 +59,9 @@ async function handleRequest(req: Request): Promise<Response> {
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) return json({ error: 'Unauthorized' }, 401)
 
-  const { data: { user }, error: authError } = await createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-  ).auth.getUser(authHeader.replace('Bearer ', ''))
+  const { data: { user }, error: authError } = await supabase.auth.getUser(
+    authHeader.replace('Bearer ', ''),
+  )
 
   if (authError || !user) return json({ error: 'Unauthorized' }, 401)
 
@@ -172,6 +171,7 @@ async function handleRequest(req: Request): Promise<Response> {
     }))
     similarity = result.FaceMatches?.[0]?.Similarity ?? 0
     matched = (result.FaceMatches?.length ?? 0) > 0
+    console.log(`CompareFaces: similarity=${similarity.toFixed(1)}, matched=${matched}, threshold=${SIMILARITY_THRESHOLD}`)
   } catch (err: unknown) {
     // InvalidParameterException = no face detected or image quality too low
     const name = (err as { name?: string }).name ?? ''
