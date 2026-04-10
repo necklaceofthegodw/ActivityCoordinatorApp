@@ -148,14 +148,14 @@ export default function VerifyPage() {
       }
 
       if (data.reason === 'limit_reached') {
-        setState({ status: 'limit_reached', retryAfter: data.retryAfter })
+        setState({ status: 'limit_reached', retryAfter: data.retryAfter as string })
         return
       }
 
       setState({
         status: 'error',
         reason: data.reason === 'no_face' ? 'no_face' : 'no_match',
-        attemptsLeft: data.attemptsLeft,
+        attemptsLeft: data.attemptsLeft as number | undefined,
       })
     } catch {
       setState({ status: 'error', reason: 'unknown' })
