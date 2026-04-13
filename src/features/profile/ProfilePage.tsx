@@ -355,19 +355,6 @@ export function ProfilePage({ userId, onClose }: Props) {
           </div>
         )}
 
-        {isOwnProfile && (
-          <div className="mx-4 mb-4 rounded-xl border border-red-200 bg-red-50 p-4">
-            <h3 className="mb-1 text-sm font-semibold text-red-800">{t('profile.dangerZone')}</h3>
-            <p className="mb-3 text-xs text-red-700">{t('profile.deleteAccountHint')}</p>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-            >
-              {t('profile.deleteAccount')}
-            </button>
-          </div>
-        )}
-
         {/* Activity history */}
         <div className="px-4 pb-6">
           <h3 className="mb-3 text-sm font-semibold text-gray-700">{t('profile.activityHistory')}</h3>
@@ -392,6 +379,19 @@ export function ProfilePage({ userId, onClose }: Props) {
             </div>
           )}
         </div>
+
+        {isOwnProfile && isEditing && (
+          <div className="mx-4 mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+            <h3 className="mb-1 text-sm font-semibold text-red-800">{t('profile.dangerZone')}</h3>
+            <p className="mb-3 text-xs text-red-700">{t('profile.deleteAccountHint')}</p>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            >
+              {t('profile.deleteAccount')}
+            </button>
+          </div>
+        )}
       </div>
 
       {showReport && (

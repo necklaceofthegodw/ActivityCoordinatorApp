@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
+  const oauthRedirectTo = import.meta.env.VITE_OAUTH_REDIRECT_TO?.trim() || `${window.location.origin}/`
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(mode === 'login' ? loginSchema : registerSchema),
@@ -54,7 +55,7 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: oauthRedirectTo,
           skipBrowserRedirect: true,
           queryParams: { prompt: 'select_account' },
         },
