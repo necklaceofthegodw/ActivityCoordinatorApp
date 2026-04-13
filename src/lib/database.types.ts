@@ -132,6 +132,10 @@ export type Database = {
     }
     Views: Record<string, never>
     Functions: {
+      delete_my_account: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
       get_user_activity_history: {
         Args: { p_user_id: string }
         Returns: Array<{

@@ -36,6 +36,8 @@ export function ProfilePage({ userId, onClose }: Props) {
   const [showReport, setShowReport] = useState(false)
   const [showAvatarWarning, setShowAvatarWarning] = useState(false)
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
 
@@ -142,6 +144,26 @@ export function ProfilePage({ userId, onClose }: Props) {
     queryClient.invalidateQueries({ queryKey: ['profile', userId] })
     setIsEditing(false)
     toast.success(t('profile.saved'))
+  }
+
+  async function handleDeleteAccount() {
+    if (!isOwnProfile || isDeletingAccount) return
+    setIsDeletingAccount(true)
+
+    try {
+      const { error } = await supabase.rpc('delete_my_account', {})
+      if (error) throw error
+
+      await signOut()
+      setShowDeleteConfirm(false)
+      onClose()
+      toast.success(t('profile.accountDeleted'))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('common.genericError')
+      toast.error(t('profile.deleteAccountFailed'), { description: message })
+    } finally {
+      setIsDeletingAccount(false)
+    }
   }
 
   function handleLanguageChange(setting: 'auto' | 'en') {
@@ -333,6 +355,19 @@ export function ProfilePage({ userId, onClose }: Props) {
           </div>
         )}
 
+        {isOwnProfile && (
+          <div className="mx-4 mb-4 rounded-xl border border-red-200 bg-red-50 p-4">
+            <h3 className="mb-1 text-sm font-semibold text-red-800">{t('profile.dangerZone')}</h3>
+            <p className="mb-3 text-xs text-red-700">{t('profile.deleteAccountHint')}</p>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            >
+              {t('profile.deleteAccount')}
+            </button>
+          </div>
+        )}
+
         {/* Activity history */}
         <div className="px-4 pb-6">
           <h3 className="mb-3 text-sm font-semibold text-gray-700">{t('profile.activityHistory')}</h3>
@@ -388,6 +423,31 @@ export function ProfilePage({ userId, onClose }: Props) {
                 className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white"
               >
                 {t('common.confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 z-[1011] flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-base font-semibold text-gray-900">{t('profile.deleteAccountTitle')}</h3>
+            <p className="mb-5 text-sm text-gray-600">{t('profile.deleteAccountWarning')}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeletingAccount}
+                className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-700 disabled:opacity-60"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeletingAccount}
+                className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+              >
+                {isDeletingAccount ? t('profile.deletingAccount') : t('profile.deleteAccountConfirm')}
               </button>
             </div>
           </div>
