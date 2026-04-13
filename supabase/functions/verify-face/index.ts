@@ -124,11 +124,16 @@ async function handleRequest(req: Request): Promise<Response> {
     return json({ error: 'Invalid selfie format' }, 400)
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('avatar_url, is_verified, verification_attempts, last_attempt_at')
     .eq('id', user.id)
     .single()
+
+  if (profileError) {
+    console.error('verify-face profile lookup failed:', profileError.message)
+    return json({ error: 'Profile lookup failed' }, 500)
+  }
 
   if (!profile) return json({ error: 'Profile not found' }, 404)
   if (profile.is_verified) return json({ verified: true })
@@ -178,10 +183,14 @@ async function handleRequest(req: Request): Promise<Response> {
     if (name === 'InvalidParameterException') {
       // Increment attempt even for no_face — prevents abuse via low-quality images
       const newAttempts = currentAttempts + 1
-      await supabase
+      const { error: attemptError } = await supabase
         .from('profiles')
         .update({ verification_attempts: newAttempts, last_attempt_at: new Date().toISOString() })
         .eq('id', user.id)
+      if (attemptError) {
+        console.error('verify-face failed to update attempts (no_face):', attemptError.message)
+        return json({ error: 'Failed to record verification attempt' }, 500)
+      }
       return json({
         verified: false,
         reason: 'no_face',
@@ -194,16 +203,24 @@ async function handleRequest(req: Request): Promise<Response> {
 
   // Increment attempts only after a real comparison result (match or no_match)
   const newAttempts = currentAttempts + 1
-  await supabase
+  const { error: attemptsUpdateError } = await supabase
     .from('profiles')
     .update({ verification_attempts: newAttempts, last_attempt_at: new Date().toISOString() })
     .eq('id', user.id)
+  if (attemptsUpdateError) {
+    console.error('verify-face failed to update attempts:', attemptsUpdateError.message)
+    return json({ error: 'Failed to record verification attempt' }, 500)
+  }
 
   if (matched) {
-    await supabase
+    const { error: verifyUpdateError } = await supabase
       .from('profiles')
       .update({ is_verified: true })
       .eq('id', user.id)
+    if (verifyUpdateError) {
+      console.error('verify-face failed to set is_verified=true:', verifyUpdateError.message)
+      return json({ error: 'Failed to persist verification status' }, 500)
+    }
     return json({ verified: true, similarity })
   }
 
