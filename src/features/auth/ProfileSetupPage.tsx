@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { compressImage } from '@/lib/image'
+import { requestVerifyFace } from '@/lib/verifyFaceRequest'
 import { useAuth } from './AuthProvider'
 
 const profileSchema = z.object({
@@ -74,25 +75,18 @@ export default function ProfileSetupPage() {
 
           // Validate face detected in avatar
           try {
-            const { data: { session: currentSession } } = await supabase.auth.getSession()
-            if (currentSession) {
-              const res = await fetch(
-                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-face`,
-                {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${currentSession.access_token}` },
-                  body: JSON.stringify({ action: 'validate-avatar', avatarUrl: publicUrl }),
-                }
-              )
-              if (res.ok) {
-                const faceData = await res.json()
-                if (faceData.faceDetected === false) {
-                  await supabase.storage.from('avatars').remove([path])
-                  toast.error(t('setup.avatarNoFace'))
-                  setIsSubmitting(false)
-                  return
-                }
-              }
+            const faceRes = await requestVerifyFace({ action: 'validate-avatar', avatarUrl: publicUrl })
+            let faceData: { faceDetected?: boolean } | null = null
+            try {
+              faceData = (await faceRes.json()) as { faceDetected?: boolean }
+            } catch {
+              faceData = null
+            }
+            if (faceRes.ok && faceData?.faceDetected === false) {
+              await supabase.storage.from('avatars').remove([path])
+              toast.error(t('setup.avatarNoFace'))
+              setIsSubmitting(false)
+              return
             }
           } catch {
             // Edge Function unavailable — allow upload
@@ -191,3 +185,5 @@ export default function ProfileSetupPage() {
     </div>
   )
 }
+
+

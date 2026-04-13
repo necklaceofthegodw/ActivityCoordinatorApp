@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { requestVerifyFace } from '@/lib/verifyFaceRequest'
 import { useAuth } from './AuthProvider'
 
 type VerifyState =
@@ -104,20 +105,7 @@ export default function VerifyPage() {
 
     try {
       const base64 = await blobToBase64(state.blob)
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { setState({ status: 'error', reason: 'unknown' }); return }
-
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-face`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ action: 'verify', selfie: base64 }),
-        }
-      )
+      const res = await requestVerifyFace({ action: 'verify', selfie: base64 })
 
       if (res.status === 503) {
         sessionStorage.setItem('verificationPending', 'true')
@@ -125,21 +113,20 @@ export default function VerifyPage() {
         return
       }
 
-      let data: Record<string, unknown>
+      let payload: Record<string, unknown> | null = null
       try {
-        data = await res.json()
+        payload = (await res.clone().json()) as Record<string, unknown>
       } catch {
-        // Edge Function returned a non-JSON body (e.g. 500 crash)
+        payload = null
+      }
+      if (!res.ok || !payload) {
+        const responseText = await res.text().catch(() => '')
+        console.error('verify-face request failed', { status: res.status, responseText })
         setState({ status: 'error', reason: 'unknown' })
         return
       }
 
-      if (!res.ok) {
-        setState({ status: 'error', reason: 'unknown' })
-        return
-      }
-
-      if (data.verified) {
+      if (payload.verified) {
         sessionStorage.removeItem('verificationPending')
         setState({ status: 'success' })
         // Refresh session so AuthProvider re-fetches profile with is_verified = true
@@ -147,15 +134,15 @@ export default function VerifyPage() {
         return
       }
 
-      if (data.reason === 'limit_reached') {
-        setState({ status: 'limit_reached', retryAfter: data.retryAfter as string })
+      if (payload.reason === 'limit_reached') {
+        setState({ status: 'limit_reached', retryAfter: payload.retryAfter as string })
         return
       }
 
       setState({
         status: 'error',
-        reason: data.reason === 'no_face' ? 'no_face' : 'no_match',
-        attemptsLeft: data.attemptsLeft as number | undefined,
+        reason: payload.reason === 'no_face' ? 'no_face' : 'no_match',
+        attemptsLeft: payload.attemptsLeft as number | undefined,
       })
     } catch {
       setState({ status: 'error', reason: 'unknown' })

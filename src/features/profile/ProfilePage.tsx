@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { compressImage } from '@/lib/image'
+import { requestVerifyFace } from '@/lib/verifyFaceRequest'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useProfile, useActivityHistory } from './useProfile'
 import { ReportUserDialog } from '@/features/reports/ReportUserDialog'
@@ -60,24 +61,15 @@ export function ProfilePage({ userId, onClose }: Props) {
   })
 
   const validateAvatarFace = useCallback(async (publicUrl: string): Promise<boolean> => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return false
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-face`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-          body: JSON.stringify({ action: 'validate-avatar', avatarUrl: publicUrl }),
-        }
-      )
-      if (!res.ok) return true // Edge Function unavailable — allow upload
-      const data = await res.json()
+      const res = await requestVerifyFace({ action: 'validate-avatar', avatarUrl: publicUrl })
+      if (!res.ok) return true // Edge Function unavailable - allow upload
+      const data = (await res.json()) as { faceDetected?: boolean }
       return data.faceDetected === true
     } catch {
-      return true // network error — allow upload
+      return true // network error - allow upload
     }
-  }, [user])
+  }, [])
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -128,11 +120,11 @@ export function ProfilePage({ userId, onClose }: Props) {
       return
     }
 
-    // Single update — set new avatar and reset verification in one call
+    // Single update â€” set new avatar and reset verification in one call
     await supabase.from('profiles').update({ avatar_url: avatarUrl, is_verified: false }).eq('id', user.id)
     queryClient.invalidateQueries({ queryKey: ['profile', userId] })
     toast.success(t('profile.avatarUpdated'))
-    // Refresh session → AuthProvider re-fetches profile → routing detects is_verified=false → /verify
+    // Refresh session â†’ AuthProvider re-fetches profile â†’ routing detects is_verified=false â†’ /verify
     await supabase.auth.refreshSession()
   }
 
@@ -357,7 +349,7 @@ export function ProfilePage({ userId, onClose }: Props) {
                       {new Date(activity.scheduled_at).toLocaleDateString(locale, {
                         day: 'numeric', month: 'short', year: 'numeric',
                       })}
-                      {' · '}{activity.current_participants}/{activity.max_participants} {t('profile.people')}
+                      {' Â· '}{activity.current_participants}/{activity.max_participants} {t('profile.people')}
                     </p>
                   </div>
                 </div>
@@ -404,3 +396,6 @@ export function ProfilePage({ userId, onClose }: Props) {
     </>
   )
 }
+
+
+

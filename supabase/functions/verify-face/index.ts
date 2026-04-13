@@ -57,13 +57,21 @@ async function handleRequest(req: Request): Promise<Response> {
 
   // Verify JWT and extract user id
   const authHeader = req.headers.get('Authorization')
-  if (!authHeader) return json({ error: 'Unauthorized' }, 401)
+  if (!authHeader) return json({ error: 'Unauthorized', detail: 'Missing Authorization header' }, 401)
+
+  const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i)
+  if (!bearerMatch) return json({ error: 'Unauthorized', detail: 'Invalid Authorization format' }, 401)
+
+  const accessToken = bearerMatch[1].trim()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser(
-    authHeader.replace('Bearer ', ''),
+    accessToken,
   )
 
-  if (authError || !user) return json({ error: 'Unauthorized' }, 401)
+  if (authError || !user) {
+    console.error('verify-face auth failed:', authError?.message ?? 'Unknown auth error')
+    return json({ error: 'Unauthorized', detail: authError?.message ?? 'User not found' }, 401)
+  }
 
   let body: { action: string; selfie?: string; avatarUrl?: string }
   try {
