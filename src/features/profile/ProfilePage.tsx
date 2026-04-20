@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { compressImage } from '@/lib/image'
+import { REQUIRE_PROFILE_VERIFICATION } from '@/lib/profileVerification'
 import { requestVerifyFace } from '@/lib/verifyFaceRequest'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useProfile, useActivityHistory } from './useProfile'
@@ -63,6 +64,8 @@ export function ProfilePage({ userId, onClose }: Props) {
   })
 
   const validateAvatarFace = useCallback(async (publicUrl: string): Promise<boolean> => {
+    if (!REQUIRE_PROFILE_VERIFICATION) return true
+
     try {
       const res = await requestVerifyFace({ action: 'validate-avatar', avatarUrl: publicUrl })
       if (!res.ok) return true // Edge Function unavailable - allow upload

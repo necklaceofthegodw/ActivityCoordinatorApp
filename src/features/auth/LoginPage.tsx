@@ -9,13 +9,22 @@ import { supabase } from '@/lib/supabase'
 const loginSchema = z.object({
   email: z.string().email('auth.emailInvalid'),
   password: z.string().min(6, 'auth.passwordMinLogin'),
+  confirmPassword: z.string().optional(),
 })
 
 const registerSchema = loginSchema.extend({
   password: z.string().min(8, 'auth.passwordMinRegister'),
+  confirmPassword: z.string().min(1, 'auth.confirmPasswordRequired'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'auth.passwordsDoNotMatch',
+  path: ['confirmPassword'],
 })
 
-type LoginForm = z.infer<typeof loginSchema>
+type AuthForm = {
+  email: string
+  password: string
+  confirmPassword?: string
+}
 
 export default function LoginPage() {
   const { t } = useTranslation()
@@ -23,19 +32,29 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
   const oauthRedirectTo = import.meta.env.VITE_OAUTH_REDIRECT_TO?.trim() || `${window.location.origin}/`
+  const authEmailRedirectTo = import.meta.env.VITE_AUTH_EMAIL_REDIRECT_TO?.trim() || `${window.location.origin}/`
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+  const { register, handleSubmit, formState: { errors } } = useForm<AuthForm>({
     resolver: zodResolver(mode === 'login' ? loginSchema : registerSchema),
   })
 
-  async function onSubmit(data: LoginForm) {
+  async function onSubmit(data: AuthForm) {
     setIsSubmitting(true)
     try {
       if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword(data)
+        const { error } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        })
         if (error) throw error
       } else {
-        const { error } = await supabase.auth.signUp(data)
+        const { error } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            emailRedirectTo: authEmailRedirectTo,
+          },
+        })
         if (error) throw error
         toast.success(t('auth.checkEmail'))
       }
@@ -127,6 +146,20 @@ export default function LoginPage() {
             />
             {errors.password && <p className="mt-1 text-xs text-red-500">{t(errors.password.message!)}</p>}
           </div>
+
+          {mode === 'register' && (
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">{t('auth.confirmPassword')}</label>
+              <input
+                {...register('confirmPassword')}
+                type="password"
+                autoComplete="new-password"
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                placeholder="********"
+              />
+              {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{t(errors.confirmPassword.message!)}</p>}
+            </div>
+          )}
 
           <button
             type="submit"

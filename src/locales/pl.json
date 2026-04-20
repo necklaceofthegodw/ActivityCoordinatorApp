@@ -15,6 +15,7 @@
   "auth.continueWithGoogle": "Kontynuuj z Google",
   "auth.email": "Email",
   "auth.password": "Hasło",
+  "auth.confirmPassword": "Powtórz hasło",
   "auth.login": "Zaloguj się",
   "auth.register": "Utwórz konto",
   "auth.noAccount": "Nie masz konta? ",
@@ -25,6 +26,8 @@
   "auth.emailInvalid": "Podaj poprawny adres email",
   "auth.passwordMinLogin": "Hasło musi mieć minimum 6 znaków",
   "auth.passwordMinRegister": "Hasło musi mieć minimum 8 znaków",
+  "auth.confirmPasswordRequired": "Powtórz hasło",
+  "auth.passwordsDoNotMatch": "Hasła muszą być takie same",
 
   "setup.title": "Skonfiguruj profil",
   "setup.subtitle": "Inni uczestnicy zobaczą te informacje",

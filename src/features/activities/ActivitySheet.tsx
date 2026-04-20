@@ -9,6 +9,7 @@ import { useProfile } from '@/features/profile/useProfile'
 import { getTierInfo } from '@/lib/tiers'
 import { CATEGORY_MAP } from '@/lib/categories'
 import { useBackButton } from '@/hooks/useBackButton'
+import { REQUIRE_PROFILE_VERIFICATION } from '@/lib/profileVerification'
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
 
@@ -122,7 +123,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
               >
                 💬 {t('activity.openChat')}
               </button>
-            ) : profile?.is_verified === false ? (
+            ) : REQUIRE_PROFILE_VERIFICATION && profile?.is_verified === false ? (
               <button
                 onClick={() => { onClose(); onNavigateToVerify() }}
                 className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
@@ -161,7 +162,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
           </div>
 
           {/* Verification hint */}
-          {!hasAccess && profile?.is_verified === false && (
+          {!hasAccess && REQUIRE_PROFILE_VERIFICATION && profile?.is_verified === false && (
             <p className="text-center text-xs text-gray-400">{t('verify.notVerifiedJoin')}</p>
           )}
 

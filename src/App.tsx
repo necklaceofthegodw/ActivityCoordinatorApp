@@ -16,6 +16,7 @@ import type { ActivityCategory, Database } from '@/lib/database.types'
 import { useMyActivities } from '@/features/activities/useMyActivities'
 import { useActivityById } from '@/features/activities/useActivityById'
 import { CATEGORY_MAP } from '@/lib/categories'
+import { REQUIRE_PROFILE_VERIFICATION } from '@/lib/profileVerification'
 
 type Activity = Database['public']['Functions']['get_nearby_activities']['Returns'][number]
 
@@ -36,7 +37,7 @@ function MapPage() {
   const { user, profile } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const verificationPending = sessionStorage.getItem('verificationPending') === 'true'
+  const verificationPending = REQUIRE_PROFILE_VERIFICATION && sessionStorage.getItem('verificationPending') === 'true'
   const queryClient = useQueryClient()
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
   const [createLocation, setCreateLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -83,7 +84,7 @@ function MapPage() {
   return (
     <div className="relative w-screen" style={{ height: 'var(--app-height, 100svh)' }}>
       {/* Verification pending banner (shown when API was down during verify attempt) */}
-      {!profile?.is_verified && verificationPending && (
+      {REQUIRE_PROFILE_VERIFICATION && !profile?.is_verified && verificationPending && (
         <div
           className="absolute left-0 right-0 z-[1003] flex items-center justify-between gap-2 bg-amber-500 px-4 py-2 text-sm font-medium text-white"
           style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.5rem)', top: 0 }}
@@ -100,7 +101,7 @@ function MapPage() {
       <MapView
         onActivitySelect={handleActivitySelect}
         onCreateActivity={(loc) => {
-          if (!profile?.is_verified) {
+          if (REQUIRE_PROFILE_VERIFICATION && !profile?.is_verified) {
             toast.error(t('verify.notVerifiedCreate'))
             navigate('/verify')
             return
@@ -175,7 +176,7 @@ function MapPage() {
 function AppRoutes() {
   const { session, profile, isLoading } = useAuth()
   useLocation() // subscribe to location changes so sessionStorage is re-read on every navigation
-  const verificationPending = sessionStorage.getItem('verificationPending') === 'true'
+  const verificationPending = REQUIRE_PROFILE_VERIFICATION && sessionStorage.getItem('verificationPending') === 'true'
 
   if (isLoading) {
     return (
@@ -205,7 +206,7 @@ function AppRoutes() {
     )
   }
 
-  if (!profile.is_verified && !verificationPending) {
+  if (REQUIRE_PROFILE_VERIFICATION && !profile.is_verified && !verificationPending) {
     return (
       <Routes>
         <Route path="/verify" element={<VerifyPage />} />

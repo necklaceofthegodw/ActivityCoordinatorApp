@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { compressImage } from '@/lib/image'
+import { REQUIRE_PROFILE_VERIFICATION } from '@/lib/profileVerification'
 import { requestVerifyFace } from '@/lib/verifyFaceRequest'
 import { useAuth } from './AuthProvider'
 
@@ -73,23 +74,24 @@ export default function ProfileSetupPage() {
             .from('avatars')
             .getPublicUrl(path)
 
-          // Validate face detected in avatar
-          try {
-            const faceRes = await requestVerifyFace({ action: 'validate-avatar', avatarUrl: publicUrl })
-            let faceData: { faceDetected?: boolean } | null = null
+          if (REQUIRE_PROFILE_VERIFICATION) {
             try {
-              faceData = (await faceRes.json()) as { faceDetected?: boolean }
+              const faceRes = await requestVerifyFace({ action: 'validate-avatar', avatarUrl: publicUrl })
+              let faceData: { faceDetected?: boolean } | null = null
+              try {
+                faceData = (await faceRes.json()) as { faceDetected?: boolean }
+              } catch {
+                faceData = null
+              }
+              if (faceRes.ok && faceData?.faceDetected === false) {
+                await supabase.storage.from('avatars').remove([path])
+                toast.error(t('setup.avatarNoFace'))
+                setIsSubmitting(false)
+                return
+              }
             } catch {
-              faceData = null
+              // Edge Function unavailable - allow upload
             }
-            if (faceRes.ok && faceData?.faceDetected === false) {
-              await supabase.storage.from('avatars').remove([path])
-              toast.error(t('setup.avatarNoFace'))
-              setIsSubmitting(false)
-              return
-            }
-          } catch {
-            // Edge Function unavailable — allow upload
           }
 
           avatarUrl = publicUrl
@@ -185,5 +187,3 @@ export default function ProfileSetupPage() {
     </div>
   )
 }
-
-
