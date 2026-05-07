@@ -220,9 +220,9 @@
   "game.score": "Score: {{score}}",
   "game.gameOver": "Record: {{best}}  •  Click to play again",
 
-  "tier.0": "Newcomer",
-  "tier.1": "Active",
-  "tier.2": "Organizer",
-  "tier.3": "Leader",
-  "tier.4": "Legend"
+  "tier.0": "Blank Card",
+  "tier.1": "Freshly Stamped",
+  "tier.2": "Certified Stamper",
+  "tier.3": "Ink Authority",
+  "tier.4": "Neighborhood Stamp Lord"
 }

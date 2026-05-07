@@ -12,11 +12,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'ActivityCoordinator',
-        short_name: 'ActivityApp',
+        name: 'Stempla',
+        short_name: 'Stempla',
         description: 'Znajdź ludzi do wspólnych aktywności w okolicy',
-        theme_color: '#2563EB',
-        background_color: '#ffffff',
+        theme_color: '#4D5382',
+        background_color: '#F8FAEF',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

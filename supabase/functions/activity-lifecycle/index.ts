@@ -92,7 +92,7 @@ async function notifyOrganizerActivityExpired(
   // Email alert to admin
   if (RESEND_API_KEY && ADMIN_EMAIL) {
     await sendAdminAlert({
-      subject: `[ActivityCoordinator] Aktywność wygasła bez uczestników`,
+      subject: `[Stempla] Aktywność wygasła bez uczestników`,
       body: `Aktywność "${activity.title}" zaplanowana na ${scheduledAt} wygasła bez uczestników.\nOrganizator: ${profile.nickname}`,
     })
   }
@@ -106,7 +106,7 @@ async function sendAdminAlert(email: { subject: string; body: string }): Promise
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'ActivityCoordinator <noreply@activitycoordinator.app>',
+      from: 'Stempla <noreply@activitycoordinator.app>',
       to: [ADMIN_EMAIL],
       subject: email.subject,
       text: email.body,

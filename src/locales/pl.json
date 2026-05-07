@@ -220,9 +220,9 @@
   "game.score": "Wynik: {{score}}",
   "game.gameOver": "Rekord: {{best}}  •  Kliknij aby zagrać ponownie",
 
-  "tier.0": "Nowicjusz",
-  "tier.1": "Aktywny",
-  "tier.2": "Organizator",
-  "tier.3": "Lider",
-  "tier.4": "Legenda"
+  "tier.0": "Pusta Karta",
+  "tier.1": "Świeżo Ostemplowany",
+  "tier.2": "Certyfikowany Stemplarz",
+  "tier.3": "Atramentowa Szycha",
+  "tier.4": "Władca Sąsiedzkich Pieczątek"
 }

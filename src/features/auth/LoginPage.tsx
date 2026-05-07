@@ -94,7 +94,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-fresh-surface px-4">
       <div className="fresh-card w-full max-w-sm p-8">
-        <h1 className="mb-1 text-2xl font-bold text-fresh-plum">ActivityCoordinator</h1>
+        <h1 className="mb-1 text-2xl font-bold text-fresh-plum">Stempla</h1>
         <p className="mb-6 text-sm text-fresh-muted">
           {mode === 'login' ? t('auth.loginSubtitle') : t('auth.createAccount')}
         </p>
