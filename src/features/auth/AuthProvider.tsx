@@ -15,39 +15,81 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      window.setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+    }),
+  ])
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session) fetchProfile(session.user.id)
-      else setIsLoading(false)
-    })
+    let isMounted = true
+
+    async function initializeAuth() {
+      try {
+        const { data: { session } } = await withTimeout(
+          supabase.auth.getSession(),
+          8_000,
+          'auth session load',
+        )
+        if (!isMounted) return
+        setSession(session)
+        if (session) await fetchProfile(session.user.id)
+        else setIsLoading(false)
+      } catch (error) {
+        console.error('auth initialization failed', error)
+        if (!isMounted) return
+        setSession(null)
+        setProfile(null)
+        setIsLoading(false)
+      }
+    }
+
+    void initializeAuth()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (session) fetchProfile(session.user.id)
+      if (session) void fetchProfile(session.user.id)
       else {
         setProfile(null)
         setIsLoading(false)
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   async function fetchProfile(userId: string) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    const controller = new AbortController()
+    const timeoutId = window.setTimeout(() => controller.abort(), 8_000)
 
-    setProfile(data)
-    setIsLoading(false)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .abortSignal(controller.signal)
+        .single()
+
+      if (error) console.error('profile fetch failed', error)
+      setProfile(data ?? null)
+    } catch (error) {
+      console.error('profile fetch failed', error)
+      setProfile(null)
+    } finally {
+      window.clearTimeout(timeoutId)
+      setIsLoading(false)
+    }
   }
 
   async function signOut() {

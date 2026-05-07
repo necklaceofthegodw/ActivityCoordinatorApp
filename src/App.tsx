@@ -180,8 +180,12 @@ function AppRoutes() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-fresh-surface">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-fresh-indigo border-t-transparent" />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-fresh-surface px-6 text-center">
+        <div className="h-9 w-9 animate-spin rounded-full border-2 border-fresh-indigo border-t-transparent" />
+        <div>
+          <p className="text-lg font-bold text-fresh-plum">Stempla</p>
+          <p className="mt-1 text-sm text-fresh-muted">Loading...</p>
+        </div>
       </div>
     )
   }
