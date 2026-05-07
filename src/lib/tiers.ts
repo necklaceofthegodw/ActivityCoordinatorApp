@@ -1,9 +1,9 @@
 export const TIERS = [
-  { tier: 0, emoji: '🌱', color: 'text-gray-500',  bg: 'bg-gray-100',   min: 0   },
-  { tier: 1, emoji: '⚡', color: 'text-green-600', bg: 'bg-green-100',  min: 50  },
-  { tier: 2, emoji: '🎯', color: 'text-blue-600',  bg: 'bg-blue-100',   min: 150 },
-  { tier: 3, emoji: '🏆', color: 'text-amber-600', bg: 'bg-amber-100',  min: 350 },
-  { tier: 4, emoji: '👑', color: 'text-purple-600',bg: 'bg-purple-100', min: 700 },
+  { tier: 0, emoji: '🌱', color: 'text-fresh-muted', bg: 'bg-fresh-surface', bar: 'bg-fresh-muted', min: 0 },
+  { tier: 1, emoji: '⚡', color: 'text-fresh-indigo', bg: 'bg-fresh-soft', bar: 'bg-fresh-garden', min: 50 },
+  { tier: 2, emoji: '🎯', color: 'text-fresh-sky', bg: 'bg-fresh-soft', bar: 'bg-fresh-sky', min: 150 },
+  { tier: 3, emoji: '🏆', color: 'text-fresh-indigo', bg: 'bg-fresh-moss/50', bar: 'bg-fresh-indigo', min: 350 },
+  { tier: 4, emoji: '👑', color: 'text-fresh-plum', bg: 'bg-fresh-moss', bar: 'bg-fresh-plum', min: 700 },
 ] as const
 
 export function getTierInfo(tier: number) {

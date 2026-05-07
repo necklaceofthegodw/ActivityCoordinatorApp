@@ -13,9 +13,9 @@ export function RadiusSlider({ value, onChange }: Props) {
         step={1}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-1.5 min-w-0 flex-1 cursor-pointer accent-blue-600"
+        className="h-1.5 min-w-0 flex-1 cursor-pointer accent-fresh-sky"
       />
-      <span className="w-10 shrink-0 whitespace-nowrap text-right text-xs font-medium text-gray-700">
+      <span className="w-10 shrink-0 whitespace-nowrap text-right text-xs font-medium text-fresh-plum">
         {value} km
       </span>
     </div>

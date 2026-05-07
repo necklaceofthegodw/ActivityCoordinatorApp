@@ -92,17 +92,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm">
-        <h1 className="mb-1 text-2xl font-bold text-gray-900">ActivityCoordinator</h1>
-        <p className="mb-6 text-sm text-gray-500">
+    <div className="flex min-h-screen items-center justify-center bg-fresh-surface px-4">
+      <div className="fresh-card w-full max-w-sm p-8">
+        <h1 className="mb-1 text-2xl font-bold text-fresh-plum">ActivityCoordinator</h1>
+        <p className="mb-6 text-sm text-fresh-muted">
           {mode === 'login' ? t('auth.loginSubtitle') : t('auth.createAccount')}
         </p>
 
         <button
           onClick={handleGoogleLogin}
           disabled={isGoogleSubmitting}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          className="fresh-secondary mb-4 flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -115,33 +115,33 @@ export default function LoginPage() {
 
         <div className="relative mb-4">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200" />
+            <div className="w-full border-t border-fresh-border" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-white px-2 text-gray-400">{t('common.or')}</span>
+            <span className="bg-white px-2 text-fresh-muted/70">{t('common.or')}</span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">{t('auth.email')}</label>
+            <label className="mb-1 block text-sm font-medium text-fresh-plum">{t('auth.email')}</label>
             <input
               {...register('email')}
               type="email"
               autoComplete="email"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="fresh-input w-full rounded-lg px-3 py-2 text-sm"
               placeholder="ty@example.com"
             />
             {errors.email && <p className="mt-1 text-xs text-red-500">{t(errors.email.message!)}</p>}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">{t('auth.password')}</label>
+            <label className="mb-1 block text-sm font-medium text-fresh-plum">{t('auth.password')}</label>
             <input
               {...register('password')}
               type="password"
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="fresh-input w-full rounded-lg px-3 py-2 text-sm"
               placeholder="••••••••"
             />
             {errors.password && <p className="mt-1 text-xs text-red-500">{t(errors.password.message!)}</p>}
@@ -149,12 +149,12 @@ export default function LoginPage() {
 
           {mode === 'register' && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">{t('auth.confirmPassword')}</label>
+              <label className="mb-1 block text-sm font-medium text-fresh-plum">{t('auth.confirmPassword')}</label>
               <input
                 {...register('confirmPassword')}
                 type="password"
                 autoComplete="new-password"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="fresh-input w-full rounded-lg px-3 py-2 text-sm"
                 placeholder="********"
               />
               {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{t(errors.confirmPassword.message!)}</p>}
@@ -164,17 +164,17 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+            className="fresh-primary w-full rounded-lg px-4 py-2.5 text-sm font-medium"
           >
             {isSubmitting ? t('common.loading') : mode === 'login' ? t('auth.login') : t('auth.register')}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-500">
+        <p className="mt-4 text-center text-sm text-fresh-muted">
           {mode === 'login' ? t('auth.noAccount') : t('auth.hasAccount')}
           <button
             onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-            className="font-medium text-blue-600 hover:underline"
+            className="font-medium text-fresh-indigo hover:underline"
           >
             {mode === 'login' ? t('auth.registerLink') : t('auth.loginLink')}
           </button>

@@ -27,8 +27,8 @@ export function CategoryFilter({ pinned, selected, onChange }: Props) {
             onClick={() => toggle(value)}
             className={`flex h-9 w-9 items-center justify-center rounded-xl shadow-sm transition active:scale-95 ${
               isActive
-                ? 'bg-blue-600'
-                : 'bg-white/95'
+                ? 'bg-fresh-garden ring-2 ring-white'
+                : 'border border-fresh-border bg-white/95 hover:bg-fresh-surface'
             }`}
           >
             <span className="text-lg leading-none">{cat.emoji}</span>

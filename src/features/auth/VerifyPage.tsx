@@ -156,22 +156,22 @@ export default function VerifyPage() {
   // After success AuthProvider will re-route — show brief success screen
   if (state.status === 'success') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gray-50 px-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-fresh-surface px-4">
         <span className="text-5xl">✅</span>
-        <h2 className="text-xl font-bold text-gray-900">{t('verify.successTitle')}</h2>
-        <p className="text-sm text-gray-500">{t('verify.successDesc')}</p>
+        <h2 className="text-xl font-bold text-fresh-plum">{t('verify.successTitle')}</h2>
+        <p className="text-sm text-fresh-muted">{t('verify.successDesc')}</p>
       </div>
     )
   }
 
   if (state.status === 'api_down') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-50 px-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-fresh-surface px-4">
         <span className="text-4xl">⏳</span>
-        <p className="max-w-xs text-center text-sm text-gray-600">{t('verify.apiDown')}</p>
+        <p className="max-w-xs text-center text-sm text-fresh-muted">{t('verify.apiDown')}</p>
         <button
           onClick={() => navigate('/')}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white"
+          className="fresh-primary rounded-lg px-5 py-2.5 text-sm font-medium"
         >
           {t('common.done')}
         </button>
@@ -182,12 +182,12 @@ export default function VerifyPage() {
   // No avatar — let user through to set one
   if (!profile?.avatar_url) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-50 px-4">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-fresh-surface px-4">
         <span className="text-4xl">📷</span>
-        <p className="max-w-xs text-center text-sm text-gray-600">{t('verify.noAvatar')}</p>
+        <p className="max-w-xs text-center text-sm text-fresh-muted">{t('verify.noAvatar')}</p>
         <button
           onClick={skipForNow}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white"
+          className="fresh-primary rounded-lg px-5 py-2.5 text-sm font-medium"
         >
           {t('verify.goToProfile')}
         </button>
@@ -198,17 +198,17 @@ export default function VerifyPage() {
   const locale = i18n.language === 'pl' ? 'pl-PL' : 'en-US'
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-gray-50 px-4 pt-10">
+    <div className="flex min-h-screen flex-col items-center bg-fresh-surface px-4 pt-10">
       <div className="w-full max-w-sm">
         {/* Header with skip */}
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('verify.title')}</h1>
-            <p className="mt-1 text-sm text-gray-500">{t('verify.subtitle')}</p>
+            <h1 className="text-2xl font-bold text-fresh-plum">{t('verify.title')}</h1>
+            <p className="mt-1 text-sm text-fresh-muted">{t('verify.subtitle')}</p>
           </div>
           <button
             onClick={skipForNow}
-            className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-400 hover:bg-gray-100"
+            className="shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium text-fresh-muted hover:bg-fresh-soft"
           >
             {t('verify.skipForNow')}
           </button>
@@ -278,7 +278,7 @@ export default function VerifyPage() {
         {(state.status === 'idle' || state.status === 'error') && (
           <button
             onClick={startCamera}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+            className="fresh-primary w-full rounded-lg px-4 py-2.5 text-sm font-medium"
           >
             {t('verify.startCamera')}
           </button>
@@ -287,7 +287,7 @@ export default function VerifyPage() {
         {state.status === 'streaming' && (
           <button
             onClick={capture}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+            className="fresh-primary w-full rounded-lg px-4 py-2.5 text-sm font-medium"
           >
             {t('verify.takeSelfie')}
           </button>
@@ -297,13 +297,13 @@ export default function VerifyPage() {
           <div className="flex gap-3">
             <button
               onClick={retake}
-              className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              className="fresh-secondary flex-1 rounded-lg px-4 py-2.5 text-sm font-medium"
             >
               {t('verify.retake')}
             </button>
             <button
               onClick={submitVerification}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+              className="fresh-primary flex-1 rounded-lg px-4 py-2.5 text-sm font-medium"
             >
               {t('verify.submit')}
             </button>
@@ -311,13 +311,13 @@ export default function VerifyPage() {
         )}
 
         {state.status === 'pending' && (
-          <button disabled className="w-full rounded-lg bg-blue-400 px-4 py-2.5 text-sm font-medium text-white">
+          <button disabled className="w-full rounded-lg bg-fresh-sky/70 px-4 py-2.5 text-sm font-medium text-white">
             {t('verify.verifying')}
           </button>
         )}
 
         {user && (
-          <p className="mt-3 text-center text-xs text-gray-400">
+          <p className="mt-3 text-center text-xs text-fresh-muted">
             {user.email}
           </p>
         )}

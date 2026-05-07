@@ -45,18 +45,18 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
     <>
       {/* Backdrop */}
       <div
-        className="absolute inset-0 z-[1001] bg-black/20"
+        className="absolute inset-0 z-[1001] bg-fresh-plum/25"
         onClick={onClose}
       />
 
       {/* Sheet */}
-      <div className="absolute bottom-0 left-0 right-0 z-[1002] max-h-[85dvh] overflow-y-auto rounded-t-2xl bg-white p-5 shadow-xl" style={{ paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}>
+      <div className="absolute bottom-0 left-0 right-0 z-[1002] max-h-[85dvh] overflow-y-auto rounded-t-2xl border-t border-fresh-border bg-white p-5 shadow-xl" style={{ paddingBottom: 'calc(var(--top-inset, 0px) + 1.25rem)' }}>
         {/* Handle */}
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200" />
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-fresh-border" />
 
         <div className="mb-1 flex items-start justify-between gap-2">
-          <h2 className="text-lg font-bold text-gray-900">{activity.title}</h2>
-          <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+          <h2 className="text-lg font-bold text-fresh-plum">{activity.title}</h2>
+          <span className="shrink-0 rounded-full bg-fresh-soft px-2.5 py-1 text-xs font-medium text-fresh-indigo">
             {CATEGORY_MAP[activity.category]?.emoji} {t(`category.${activity.category}`)}
           </span>
         </div>
@@ -70,13 +70,13 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
               className="h-5 w-5 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-fresh-soft text-xs font-bold text-fresh-indigo">
               {activity.organizer_nickname[0].toUpperCase()}
             </div>
           )}
-          <span className="text-sm text-gray-500">{activity.organizer_nickname}</span>
+          <span className="text-sm text-fresh-muted">{activity.organizer_nickname}</span>
           {organizerProfile?.is_verified && (
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white" title={t('verify.verified')}>✓</span>
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-fresh-garden text-[10px] font-bold text-white" title={t('verify.verified')}>✓</span>
           )}
           {organizerProfile && (() => {
             const tierInfo = getTierInfo(organizerProfile.tier)
@@ -90,11 +90,11 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
 
         {/* Description */}
         {activity.description && (
-          <p className="mb-3 text-sm text-gray-600">{activity.description}</p>
+          <p className="mb-3 text-sm text-fresh-muted">{activity.description}</p>
         )}
 
         {/* Meta */}
-        <div className="mb-4 flex flex-wrap gap-3 text-sm text-gray-500">
+        <div className="mb-4 flex flex-wrap gap-3 text-sm text-fresh-muted">
           <span>
             🕐{' '}
             {scheduledAt.toLocaleString(locale, {
@@ -107,7 +107,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
           </span>
           <span>
             👥 {activity.current_participants}/{activity.max_participants} {t('activity.people')}
-            {!isFull && <span className="ml-1 text-green-600">{t('activity.spotsLeft', { count: spotsLeft })}</span>}
+            {!isFull && <span className="ml-1 text-fresh-garden">{t('activity.spotsLeft', { count: spotsLeft })}</span>}
             {isFull && <span className="ml-1 text-red-500">{t('activity.full')}</span>}
           </span>
           {activity.location_name && <span>📍 {activity.location_name}</span>}
@@ -119,21 +119,21 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
             {hasAccess ? (
               <button
                 onClick={() => onChatOpen(activity.id)}
-                className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                className="fresh-primary flex-1 rounded-xl py-3 text-sm font-medium"
               >
                 💬 {t('activity.openChat')}
               </button>
             ) : REQUIRE_PROFILE_VERIFICATION && profile?.is_verified === false ? (
               <button
                 onClick={() => { onClose(); onNavigateToVerify() }}
-                className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                className="fresh-primary flex-1 rounded-xl py-3 text-sm font-medium"
               >
                 {t('verify.goVerify')}
               </button>
             ) : isFull ? (
               <button
                 disabled
-                className="flex-1 rounded-xl bg-gray-100 py-3 text-sm font-medium text-gray-400"
+                className="flex-1 rounded-xl bg-fresh-surface py-3 text-sm font-medium text-fresh-muted/60"
               >
                 {t('activity.noSpots')}
               </button>
@@ -148,14 +148,14 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
               <button
                 onClick={() => join.mutate({ activityId: activity.id, title: activity.title, category: activity.category, scheduled_at: activity.scheduled_at })}
                 disabled={join.isPending}
-                className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+                className="fresh-primary flex-1 rounded-xl py-3 text-sm font-medium"
               >
                 {join.isPending ? t('activity.joining') : t('activity.join')}
               </button>
             )}
             <button
               onClick={onClose}
-              className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+              className="fresh-secondary rounded-xl px-4 py-3 text-sm font-medium"
             >
               {t('common.close')}
             </button>
@@ -163,7 +163,7 @@ export function ActivitySheet({ activity, onClose, onChatOpen, onNavigateToVerif
 
           {/* Verification hint */}
           {!hasAccess && REQUIRE_PROFILE_VERIFICATION && profile?.is_verified === false && (
-            <p className="text-center text-xs text-gray-400">{t('verify.notVerifiedJoin')}</p>
+            <p className="text-center text-xs text-fresh-muted/70">{t('verify.notVerifiedJoin')}</p>
           )}
 
           {/* Leave — participant only (not organizer) */}

@@ -19,33 +19,18 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-const CATEGORY_COLORS: Record<ActivityCategory, string> = {
-  walk:        '#22c55e',
-  coffee:      '#f59e0b',
-  squash:      '#3b82f6',
-  running:     '#ef4444',
-  language:    '#8b5cf6',
-  skateboard:  '#f97316',
-  cycling:     '#06b6d4',
-  yoga:        '#ec4899',
-  climbing:    '#84cc16',
-  swimming:    '#0ea5e9',
-  basketball:  '#f59e0b',
-  volleyball:  '#10b981',
-  chess:       '#6b7280',
-  cooking:     '#d97706',
-  hiking:      '#65a30d',
-  photography: '#7c3aed',
-  music:       '#db2777',
-  board_games: '#dc2626',
-  gym:         '#1d4ed8',
-  dancing:     '#c026d3',
-  other:       '#6b7280',
-}
+const MARKER_PALETTE = ['#8CBA80', '#658E9C', '#4D5382', '#CACF85', '#514663'] as const
+
+const CATEGORY_COLORS = Object.fromEntries(
+  (Object.keys(CATEGORY_MAP) as ActivityCategory[]).map((category, index) => [
+    category,
+    MARKER_PALETTE[index % MARKER_PALETTE.length],
+  ])
+) as Record<ActivityCategory, string>
 
 const userLocationIcon = L.divIcon({
   className: '',
-  html: `<div style="width:18px;height:18px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 0 0 3px rgba(59,130,246,0.3);"></div>`,
+  html: `<div style="width:18px;height:18px;border-radius:50%;background:#658E9C;border:3px solid white;box-shadow:0 0 0 4px rgba(140,186,128,0.32);"></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 })
@@ -194,8 +179,8 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      <div className="flex h-full items-center justify-center bg-fresh-surface">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-fresh-indigo border-t-transparent" />
       </div>
     )
   }
@@ -232,7 +217,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
         <Circle
           center={[location.lat, location.lng]}
           radius={radiusKm * 1000}
-          pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.05, weight: 1 }}
+          pathOptions={{ color: '#658E9C', fillColor: '#8CBA80', fillOpacity: 0.08, weight: 1 }}
         />
 
         {/* Pending pin preview */}
@@ -260,7 +245,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
       {/* Radius slider — centered between category icons and profile button */}
       {!isPickerOpen && (
         <div className="absolute left-1/2 top-0 z-[1000] -translate-x-1/2" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 1rem)' }}>
-          <div className="w-[200px] rounded-xl bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur-sm">
+          <div className="w-[200px] rounded-xl border border-fresh-border bg-white/95 px-3 py-1.5 shadow-sm backdrop-blur-sm">
             <RadiusSlider value={radiusKm} onChange={(km) => { setRadiusKm(km); setHasRecentered(true) }} />
           </div>
         </div>
@@ -269,7 +254,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
       {/* Pick location banner */}
       {isPickingLocation && (
         <div className="absolute bottom-24 left-1/2 z-[1000] -translate-x-1/2">
-          <div className="flex items-center gap-3 rounded-2xl bg-gray-900/90 px-4 py-3 text-white shadow-xl backdrop-blur-sm">
+          <div className="flex items-center gap-3 rounded-2xl bg-fresh-plum/95 px-4 py-3 text-white shadow-xl backdrop-blur-sm">
             <span className="text-sm font-medium">{t('map.pickLocation')}</span>
             <button
               onClick={handleCancelPick}
@@ -300,7 +285,7 @@ export function MapView({ onActivitySelect, onCreateActivity, pinnedCategories, 
       {!isPickingLocation && !isPickerOpen && (
         <button
           onClick={handleFabClick}
-          className="absolute right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition hover:bg-blue-700 active:scale-95"
+          className="absolute right-4 z-[1000] flex h-14 w-14 items-center justify-center rounded-full bg-fresh-indigo text-white shadow-lg shadow-fresh-plum/20 transition hover:bg-fresh-plum active:scale-95"
           style={{ bottom: '1.5rem' }}
           aria-label={t('activity.new')}
         >

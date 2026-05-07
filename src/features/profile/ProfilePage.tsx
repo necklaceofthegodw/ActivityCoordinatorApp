@@ -182,32 +182,32 @@ export function ProfilePage({ userId, onClose }: Props) {
 
   if (isLoading || !profile) {
     return (
-      <div className="absolute inset-0 z-[1003] flex items-center justify-center bg-white">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      <div className="absolute inset-0 z-[1003] flex items-center justify-center bg-fresh-surface">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-fresh-indigo border-t-transparent" />
       </div>
     )
   }
 
   return (
     <>
-      <div className="absolute inset-0 z-[1003] flex flex-col overflow-y-auto bg-white">
+      <div className="absolute inset-0 z-[1003] flex flex-col overflow-y-auto bg-white text-fresh-plum">
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-fresh-border bg-fresh-surface px-4 py-3">
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100"
+            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-fresh-soft"
           >
-            <svg className="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-fresh-plum" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="flex-1 text-sm font-semibold text-gray-900">
+          <span className="flex-1 text-sm font-semibold text-fresh-plum">
             {isOwnProfile ? t('profile.myProfile') : t('profile.userProfile')}
           </span>
           {isOwnProfile && !isEditing && (
             <button
               onClick={() => setIsEditing(true)}
-              className="text-sm font-medium text-blue-600 hover:underline"
+              className="text-sm font-medium text-fresh-indigo hover:underline"
             >
               {t('profile.edit')}
             </button>
@@ -242,7 +242,7 @@ export function ProfilePage({ userId, onClose }: Props) {
                 onError={() => setAvatarError(true)}
               />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-100 text-3xl font-bold text-blue-600">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-fresh-soft text-3xl font-bold text-fresh-indigo">
                 {profile.nickname[0].toUpperCase()}
               </div>
             )}
@@ -250,7 +250,7 @@ export function ProfilePage({ userId, onClose }: Props) {
               <>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white shadow"
+                  className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-fresh-indigo text-white shadow"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.586l-3 .75.75-3a4 4 0 01.586-1.414z" />
@@ -261,7 +261,7 @@ export function ProfilePage({ userId, onClose }: Props) {
             )}
           </div>
 
-          <h2 className="mb-1 text-xl font-bold text-gray-900">@{profile.nickname}</h2>
+          <h2 className="mb-1 text-xl font-bold text-fresh-plum">@{profile.nickname}</h2>
 
           {/* Tier badge */}
           {(() => {
@@ -277,22 +277,22 @@ export function ProfilePage({ userId, onClose }: Props) {
                   <span>{tierInfo.emoji}</span>
                   <span>{t(`tier.${profile.tier}`)}</span>
                 </span>
-                <p className="text-sm font-medium text-gray-700">{profile.points} {t('profile.points')}</p>
+                <p className="text-sm font-medium text-fresh-plum">{profile.points} {t('profile.points')}</p>
                 {nextPoints && (
                   <div className="w-full">
-                    <div className="mb-1 flex justify-between text-xs text-gray-400">
+                    <div className="mb-1 flex justify-between text-xs text-fresh-muted">
                       <span>{t('profile.pointsProgress', { current: profile.points })}</span>
                       <span>{t('profile.pointsToNext', { target: nextPoints, tier: t(`tier.${profile.tier + 1}`) })}</span>
                     </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-fresh-soft">
                       <div
-                        className={`h-full rounded-full transition-all ${tierInfo.bg.replace('bg-', 'bg-').replace('-100', '-400')}`}
+                        className={`h-full rounded-full transition-all ${tierInfo.bar}`}
                         style={{ width: `${progress}%` }}
                       />
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-gray-400">{t('profile.activityCount', { count: profile.activity_count })}</p>
+                <p className="text-xs text-fresh-muted">{t('profile.activityCount', { count: profile.activity_count })}</p>
               </div>
             )
           })()}
@@ -305,7 +305,7 @@ export function ProfilePage({ userId, onClose }: Props) {
                   {...register('bio')}
                   rows={3}
                   placeholder={t('setup.bioPlaceholder')}
-                  className="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="fresh-input w-full resize-none rounded-lg px-3 py-2 text-sm"
                 />
                 {errors.bio && <p className="mt-1 text-xs text-red-500">{t(errors.bio.message!)}</p>}
               </div>
@@ -313,14 +313,14 @@ export function ProfilePage({ userId, onClose }: Props) {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-medium text-white disabled:opacity-60"
+                  className="fresh-primary flex-1 rounded-xl py-2 text-sm font-medium"
                 >
                   {isSaving ? t('common.saving') : t('common.save')}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600"
+                  className="fresh-secondary rounded-xl px-4 py-2 text-sm font-medium"
                 >
                   {t('common.cancel')}
                 </button>
@@ -328,20 +328,20 @@ export function ProfilePage({ userId, onClose }: Props) {
             </form>
           ) : (
             profile.bio && (
-              <p className="max-w-xs text-center text-sm text-gray-600">{profile.bio}</p>
+              <p className="max-w-xs text-center text-sm text-fresh-muted">{profile.bio}</p>
             )
           )}
         </div>
 
         {/* Language setting */}
         {isOwnProfile && (
-          <div className="mx-4 mb-4 border-t border-gray-100 pt-4">
-            <h3 className="mb-2 text-sm font-semibold text-gray-700">{t('profile.language')}</h3>
+          <div className="mx-4 mb-4 border-t border-fresh-border pt-4">
+            <h3 className="mb-2 text-sm font-semibold text-fresh-plum">{t('profile.language')}</h3>
             <div className="flex gap-2">
               <button
                 onClick={() => handleLanguageChange('auto')}
                 className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                  langSetting === 'auto' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'
+                  langSetting === 'auto' ? 'fresh-selected' : 'border-fresh-border text-fresh-muted'
                 }`}
               >
                 {t('profile.languageAuto')}
@@ -349,7 +349,7 @@ export function ProfilePage({ userId, onClose }: Props) {
               <button
                 onClick={() => handleLanguageChange('en')}
                 className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                  langSetting === 'en' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-600'
+                  langSetting === 'en' ? 'fresh-selected' : 'border-fresh-border text-fresh-muted'
                 }`}
               >
                 {t('profile.languageEnglish')}
@@ -360,17 +360,17 @@ export function ProfilePage({ userId, onClose }: Props) {
 
         {/* Activity history */}
         <div className="px-4 pb-6">
-          <h3 className="mb-3 text-sm font-semibold text-gray-700">{t('profile.activityHistory')}</h3>
+          <h3 className="mb-3 text-sm font-semibold text-fresh-plum">{t('profile.activityHistory')}</h3>
           {history.length === 0 ? (
-            <p className="text-center text-sm text-gray-400">{t('profile.noHistory')}</p>
+            <p className="text-center text-sm text-fresh-muted">{t('profile.noHistory')}</p>
           ) : (
             <div className="space-y-2">
               {history.map((activity) => (
-                <div key={activity.id} className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5">
+                <div key={activity.id} className="flex items-center gap-3 rounded-xl bg-fresh-surface px-3 py-2.5">
                   <span className="text-lg">{CATEGORY_MAP[activity.category]?.emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="truncate text-sm font-medium text-fresh-plum">{activity.title}</p>
+                    <p className="text-xs text-fresh-muted">
                       {new Date(activity.scheduled_at).toLocaleDateString(locale, {
                         day: 'numeric', month: 'short', year: 'numeric',
                       })}
@@ -406,14 +406,14 @@ export function ProfilePage({ userId, onClose }: Props) {
       )}
 
       {showAvatarWarning && pendingAvatarFile && (
-        <div className="absolute inset-0 z-[1010] flex items-center justify-center bg-black/40 px-6">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-base font-semibold text-gray-900">{t('profile.avatarChangeTitle')}</h3>
-            <p className="mb-5 text-sm text-gray-600">{t('profile.avatarChangeWarning')}</p>
+        <div className="absolute inset-0 z-[1010] flex items-center justify-center bg-fresh-plum/40 px-6">
+          <div className="fresh-card w-full max-w-sm p-6 shadow-xl">
+            <h3 className="mb-2 text-base font-semibold text-fresh-plum">{t('profile.avatarChangeTitle')}</h3>
+            <p className="mb-5 text-sm text-fresh-muted">{t('profile.avatarChangeWarning')}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => { setShowAvatarWarning(false); setPendingAvatarFile(null) }}
-                className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-700"
+                className="fresh-secondary flex-1 rounded-xl py-2.5 text-sm font-medium"
               >
                 {t('common.cancel')}
               </button>
@@ -423,7 +423,7 @@ export function ProfilePage({ userId, onClose }: Props) {
                   void processAvatarUpload(pendingAvatarFile)
                   setPendingAvatarFile(null)
                 }}
-                className="flex-1 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white"
+                className="fresh-primary flex-1 rounded-xl py-2.5 text-sm font-medium"
               >
                 {t('common.confirm')}
               </button>
@@ -433,15 +433,15 @@ export function ProfilePage({ userId, onClose }: Props) {
       )}
 
       {showDeleteConfirm && (
-        <div className="absolute inset-0 z-[1011] flex items-center justify-center bg-black/40 px-6">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-2 text-base font-semibold text-gray-900">{t('profile.deleteAccountTitle')}</h3>
-            <p className="mb-5 text-sm text-gray-600">{t('profile.deleteAccountWarning')}</p>
+        <div className="absolute inset-0 z-[1011] flex items-center justify-center bg-fresh-plum/40 px-6">
+          <div className="fresh-card w-full max-w-sm p-6 shadow-xl">
+            <h3 className="mb-2 text-base font-semibold text-fresh-plum">{t('profile.deleteAccountTitle')}</h3>
+            <p className="mb-5 text-sm text-fresh-muted">{t('profile.deleteAccountWarning')}</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={isDeletingAccount}
-                className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-700 disabled:opacity-60"
+                className="fresh-secondary flex-1 rounded-xl py-2.5 text-sm font-medium disabled:opacity-60"
               >
                 {t('common.cancel')}
               </button>

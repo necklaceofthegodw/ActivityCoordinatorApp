@@ -162,15 +162,15 @@ export class FlappyBirdGame {
 
     // Sky gradient
     const sky = ctx.createLinearGradient(0, 0, 0, H)
-    sky.addColorStop(0, '#87CEEB')
-    sky.addColorStop(1, '#B0E2FF')
+    sky.addColorStop(0, '#EEF2D0')
+    sky.addColorStop(1, '#F8FAEF')
     ctx.fillStyle = sky
     ctx.fillRect(0, 0, W, H)
 
     // Ground
-    ctx.fillStyle = '#8B6914'
+    ctx.fillStyle = '#514663'
     ctx.fillRect(0, H - 20, W, 20)
-    ctx.fillStyle = '#5D9E31'
+    ctx.fillStyle = '#8CBA80'
     ctx.fillRect(0, H - 26, W, 8)
 
     // Pipes
@@ -211,17 +211,17 @@ export class FlappyBirdGame {
     const overhang = 5
 
     const grad = ctx.createLinearGradient(x, 0, x + w, 0)
-    grad.addColorStop(0, '#3D8B37')
-    grad.addColorStop(0.35, '#5CB85C')
-    grad.addColorStop(1, '#2E6B2A')
+    grad.addColorStop(0, '#658E9C')
+    grad.addColorStop(0.35, '#8CBA80')
+    grad.addColorStop(1, '#4D5382')
     ctx.fillStyle = grad
     ctx.fillRect(x, y, w, h)
 
     // Cap
     const capGrad = ctx.createLinearGradient(x - overhang, 0, x + w + overhang, 0)
-    capGrad.addColorStop(0, '#357A32')
-    capGrad.addColorStop(0.35, '#4CAF50')
-    capGrad.addColorStop(1, '#256325')
+    capGrad.addColorStop(0, '#4D5382')
+    capGrad.addColorStop(0.35, '#8CBA80')
+    capGrad.addColorStop(1, '#514663')
     ctx.fillStyle = capGrad
     if (isBottom) {
       ctx.fillRect(x - overhang, y, w + overhang * 2, cap)
@@ -240,18 +240,18 @@ export class FlappyBirdGame {
 
     // Body
     const bodyGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, BIRD_RADIUS)
-    bodyGrad.addColorStop(0, '#FFE566')
-    bodyGrad.addColorStop(1, '#FFA500')
+    bodyGrad.addColorStop(0, '#CACF85')
+    bodyGrad.addColorStop(1, '#8CBA80')
     ctx.fillStyle = bodyGrad
     ctx.beginPath()
     ctx.arc(0, 0, BIRD_RADIUS, 0, Math.PI * 2)
     ctx.fill()
-    ctx.strokeStyle = '#CC6600'
+    ctx.strokeStyle = '#4D5382'
     ctx.lineWidth = 1.5
     ctx.stroke()
 
     // Wing
-    ctx.fillStyle = '#FF9500'
+    ctx.fillStyle = '#658E9C'
     ctx.beginPath()
     ctx.ellipse(-3, 4, 9, 4, -0.25, 0, Math.PI * 2)
     ctx.fill()
@@ -263,13 +263,13 @@ export class FlappyBirdGame {
     ctx.fill()
 
     // Pupil
-    ctx.fillStyle = '#1a1a1a'
+    ctx.fillStyle = '#514663'
     ctx.beginPath()
     ctx.arc(6.5, -4, 2.5, 0, Math.PI * 2)
     ctx.fill()
 
     // Beak
-    ctx.fillStyle = '#FF6B35'
+    ctx.fillStyle = '#4D5382'
     ctx.beginPath()
     ctx.moveTo(10, -2)
     ctx.lineTo(17, 0)
@@ -297,12 +297,12 @@ export class FlappyBirdGame {
     ctx.roundRect(cardX, cardY, cardW, 100, 16)
     ctx.fill()
 
-    ctx.fillStyle = '#1a1a1a'
+    ctx.fillStyle = '#514663'
     ctx.font = 'bold 22px Arial'
     ctx.textAlign = 'center'
     ctx.fillText(title, W / 2, cardY + 38)
 
-    ctx.fillStyle = '#555'
+    ctx.fillStyle = '#776F83'
     ctx.font = '13px Arial'
     ctx.fillText(subtitle, W / 2, cardY + 68)
   }

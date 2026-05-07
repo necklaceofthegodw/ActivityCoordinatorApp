@@ -1,11 +1,32 @@
 @import "tailwindcss";
 
+@theme {
+  --color-fresh-moss: #CACF85;
+  --color-fresh-garden: #8CBA80;
+  --color-fresh-sky: #658E9C;
+  --color-fresh-indigo: #4D5382;
+  --color-fresh-plum: #514663;
+  --color-fresh-surface: #F8FAEF;
+  --color-fresh-soft: #EEF2D0;
+  --color-fresh-border: #DDE4B1;
+  --color-fresh-muted: #776F83;
+}
+
 /* Safe area support dla iPhone notch / Dynamic Island */
 :root {
   --sat: env(safe-area-inset-top);
   --sar: env(safe-area-inset-right);
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);
+  --fresh-primary: #4D5382;
+  --fresh-primary-hover: #514663;
+  --fresh-accent: #8CBA80;
+  --fresh-map: #658E9C;
+  --fresh-surface: #F8FAEF;
+  --fresh-soft: #EEF2D0;
+  --fresh-border: #DDE4B1;
+  --fresh-text: #514663;
+  --fresh-muted: #776F83;
 }
 
 /* Mapa na pełny ekran bez uciekania pod pasek przeglądarki */
@@ -13,4 +34,35 @@ html, body, #root {
   height: 100%;
   height: 100dvh;
   overflow: hidden;
+}
+
+body {
+  color: var(--fresh-text);
+  background: var(--fresh-surface);
+}
+
+@layer components {
+  .fresh-card {
+    @apply rounded-2xl border border-fresh-border bg-white shadow-sm;
+  }
+
+  .fresh-primary {
+    @apply bg-fresh-indigo text-white transition hover:bg-fresh-plum disabled:opacity-60;
+  }
+
+  .fresh-secondary {
+    @apply border border-fresh-border text-fresh-plum transition hover:bg-fresh-surface;
+  }
+
+  .fresh-input {
+    @apply border border-fresh-border text-fresh-plum outline-none placeholder:text-fresh-muted/70 focus:border-fresh-sky focus:ring-1 focus:ring-fresh-sky;
+  }
+
+  .fresh-selected {
+    @apply border-fresh-garden bg-fresh-soft text-fresh-indigo;
+  }
+
+  .fresh-muted-panel {
+    @apply border border-fresh-border bg-fresh-surface text-fresh-muted;
+  }
 }

@@ -86,7 +86,7 @@ function MapPage() {
       {/* Verification pending banner (shown when API was down during verify attempt) */}
       {REQUIRE_PROFILE_VERIFICATION && !profile?.is_verified && verificationPending && (
         <div
-          className="absolute left-0 right-0 z-[1003] flex items-center justify-between gap-2 bg-amber-500 px-4 py-2 text-sm font-medium text-white"
+          className="absolute left-0 right-0 z-[1003] flex items-center justify-between gap-2 bg-amber-500/95 px-4 py-2 text-sm font-medium text-white"
           style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.5rem)', top: 0 }}
         >
           <span>{t('verify.apiDownBanner')}</span>
@@ -136,10 +136,10 @@ function MapPage() {
       <div className="absolute right-4 top-0 z-[1000] flex flex-col items-end gap-2" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 1rem)' }}>
         <button
           onClick={() => setShowProfile(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md transition hover:bg-gray-50"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-fresh-border bg-white/95 shadow-md transition hover:bg-fresh-surface"
           aria-label={t('profile.myProfile')}
         >
-          <svg className="h-5 w-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-5 w-5 text-fresh-plum" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </button>
@@ -148,10 +148,10 @@ function MapPage() {
           <button
             key={activity.id}
             onClick={() => setChatActivity({ id: activity.id, title: activity.title, category: activity.category, organizer_id: activity.organizer_id, is_private: activity.is_private } as Activity)}
-            className="flex items-center gap-2 rounded-full bg-white py-2 pl-2.5 pr-3 shadow-md transition hover:bg-gray-50 active:scale-95"
+            className="flex items-center gap-2 rounded-full border border-fresh-border bg-white/95 py-2 pl-2.5 pr-3 shadow-md transition hover:bg-fresh-surface active:scale-95"
           >
             <span className="text-base leading-none">{activity.is_private ? '🔒' : CATEGORY_MAP[activity.category].emoji}</span>
-            <span className="max-w-[120px] truncate text-xs font-medium text-gray-800">{activity.title}</span>
+            <span className="max-w-[120px] truncate text-xs font-medium text-fresh-plum">{activity.title}</span>
           </button>
         ))}
       </div>
@@ -180,8 +180,8 @@ function AppRoutes() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-fresh-surface">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-fresh-indigo border-t-transparent" />
       </div>
     )
   }

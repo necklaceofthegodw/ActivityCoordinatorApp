@@ -28,7 +28,7 @@ export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props
     <>
       <button
         onClick={() => onOpenChange(true)}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-xl shadow-md transition active:scale-95"
+        className="flex h-12 w-12 items-center justify-center rounded-full border border-fresh-border bg-white/95 text-xl shadow-md transition hover:bg-fresh-surface active:scale-95"
         aria-label={t('map.categoryPickerLabel')}
       >
         🗂️
@@ -37,12 +37,12 @@ export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props
       {isOpen && (
         <div className="fixed inset-0 z-[1002] flex flex-col bg-white" style={{ paddingTop: 'calc(var(--top-inset, 0px) + 0.5rem)', paddingBottom: '1rem' }}>
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between border-b border-fresh-border bg-fresh-surface px-5 py-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">{t('map.chooseCategories')}</h2>
-              <p className="text-xs text-gray-500">{t('map.maxPinned')}</p>
+              <h2 className="text-lg font-bold text-fresh-plum">{t('map.chooseCategories')}</h2>
+              <p className="text-xs text-fresh-muted">{t('map.maxPinned')}</p>
             </div>
-            <span className="text-sm font-semibold text-blue-600">{pinned.length}/{MAX_PINNED}</span>
+            <span className="text-sm font-semibold text-fresh-sky">{pinned.length}/{MAX_PINNED}</span>
           </div>
 
           {/* Grid */}
@@ -55,19 +55,19 @@ export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props
                   <button
                     key={cat.value}
                     onClick={() => toggle(cat.value)}
-                    disabled={isDisabled}
-                    className={`relative flex aspect-square flex-col items-center justify-center gap-1.5 rounded-2xl border-2 transition active:scale-95 ${
-                      isPinned
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                      disabled={isDisabled}
+                      className={`relative flex aspect-square flex-col items-center justify-center gap-1.5 rounded-2xl border-2 transition active:scale-95 ${
+                        isPinned
+                        ? 'fresh-selected'
                         : isDisabled
-                          ? 'border-gray-100 bg-gray-50 text-gray-300'
-                          : 'border-gray-200 bg-white text-gray-700'
+                          ? 'border-fresh-border/60 bg-fresh-surface/60 text-fresh-muted/50'
+                          : 'border-fresh-border bg-white text-fresh-plum hover:bg-fresh-surface'
                     }`}
                   >
                     <span className="text-2xl leading-none">{cat.emoji}</span>
                     <span className="text-[10px] font-medium leading-tight text-center px-1">{t(`category.${cat.value}`)}</span>
                     {isPinned && (
-                      <span className="absolute top-1.5 right-1.5 text-blue-600 text-xs">✓</span>
+                      <span className="absolute right-1.5 top-1.5 text-xs text-fresh-garden">✓</span>
                     )}
                   </button>
                 )
@@ -76,10 +76,10 @@ export function CategoryPicker({ pinned, onChange, isOpen, onOpenChange }: Props
           </div>
 
           {/* Done button */}
-          <div className="px-5 py-4 border-t border-gray-100">
+          <div className="border-t border-fresh-border px-5 py-4">
             <button
               onClick={() => onOpenChange(false)}
-              className="w-full rounded-2xl bg-blue-600 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 active:scale-[0.98]"
+              className="fresh-primary w-full rounded-2xl py-3.5 text-sm font-semibold active:scale-[0.98]"
             >
               {t('common.done')}
             </button>
