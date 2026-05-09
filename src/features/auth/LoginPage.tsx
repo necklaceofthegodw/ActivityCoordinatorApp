@@ -53,8 +53,18 @@ export default function LoginPage() {
         })
         if (error) throw error
       } else {
+        const email = data.email.trim().toLowerCase()
+        const { data: emailIsRegistered, error: emailCheckError } = await supabase.rpc('email_is_registered', {
+          p_email: email,
+        })
+        if (emailCheckError) throw emailCheckError
+        if (emailIsRegistered) {
+          toast.error(t('auth.emailAlreadyRegistered'))
+          return
+        }
+
         const { data: signUpData, error } = await supabase.auth.signUp({
-          email: data.email,
+          email,
           password: data.password,
           options: {
             emailRedirectTo: authEmailRedirectTo,

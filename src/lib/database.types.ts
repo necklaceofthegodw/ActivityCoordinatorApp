@@ -132,6 +132,10 @@ export type Database = {
     }
     Views: Record<string, never>
     Functions: {
+      email_is_registered: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       delete_my_account: {
         Args: Record<string, never>
         Returns: undefined
