@@ -23,6 +23,7 @@
   "auth.registerLink": "Sign up",
   "auth.loginLink": "Sign in",
   "auth.checkEmail": "Check your email — we sent a verification link",
+  "auth.emailAlreadyRegistered": "An account with this email address is already registered",
   "auth.emailInvalid": "Enter a valid email address",
   "auth.passwordMinLogin": "Password must be at least 6 characters",
   "auth.passwordMinRegister": "Password must be at least 8 characters",

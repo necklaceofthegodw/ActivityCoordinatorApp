@@ -23,6 +23,7 @@
   "auth.registerLink": "Zarejestruj się",
   "auth.loginLink": "Zaloguj się",
   "auth.checkEmail": "Sprawdź email — wysłaliśmy link weryfikacyjny",
+  "auth.emailAlreadyRegistered": "Konto z tym adresem email jest już zarejestrowane",
   "auth.emailInvalid": "Podaj poprawny adres email",
   "auth.passwordMinLogin": "Hasło musi mieć minimum 6 znaków",
   "auth.passwordMinRegister": "Hasło musi mieć minimum 8 znaków",

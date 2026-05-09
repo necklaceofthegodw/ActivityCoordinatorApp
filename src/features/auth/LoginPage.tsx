@@ -26,6 +26,11 @@ type AuthForm = {
   confirmPassword?: string
 }
 
+function isEmailAlreadyRegisteredError(error: Error) {
+  const message = error.message.toLowerCase()
+  return message.includes('already registered') || message.includes('already been registered')
+}
+
 export default function LoginPage() {
   const { t } = useTranslation()
   const [mode, setMode] = useState<'login' | 'register'>('login')
@@ -48,14 +53,24 @@ export default function LoginPage() {
         })
         if (error) throw error
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
             emailRedirectTo: authEmailRedirectTo,
           },
         })
-        if (error) throw error
+        if (error) {
+          if (isEmailAlreadyRegisteredError(error)) {
+            toast.error(t('auth.emailAlreadyRegistered'))
+            return
+          }
+          throw error
+        }
+        if (signUpData.user?.identities?.length === 0) {
+          toast.error(t('auth.emailAlreadyRegistered'))
+          return
+        }
         toast.success(t('auth.checkEmail'))
       }
     } catch (err) {
@@ -132,7 +147,7 @@ export default function LoginPage() {
               className="fresh-input w-full rounded-lg px-3 py-2 text-sm"
               placeholder="ty@example.com"
             />
-            {errors.email && <p className="mt-1 text-xs text-red-500">{t(errors.email.message!)}</p>}
+            {errors.email?.message && <p className="mt-1 text-xs text-red-500">{t(errors.email.message)}</p>}
           </div>
 
           <div>
@@ -144,7 +159,7 @@ export default function LoginPage() {
               className="fresh-input w-full rounded-lg px-3 py-2 text-sm"
               placeholder="••••••••"
             />
-            {errors.password && <p className="mt-1 text-xs text-red-500">{t(errors.password.message!)}</p>}
+            {errors.password?.message && <p className="mt-1 text-xs text-red-500">{t(errors.password.message)}</p>}
           </div>
 
           {mode === 'register' && (
@@ -157,7 +172,7 @@ export default function LoginPage() {
                 className="fresh-input w-full rounded-lg px-3 py-2 text-sm"
                 placeholder="********"
               />
-              {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{t(errors.confirmPassword.message!)}</p>}
+              {errors.confirmPassword?.message && <p className="mt-1 text-xs text-red-500">{t(errors.confirmPassword.message)}</p>}
             </div>
           )}
 
