@@ -13,6 +13,7 @@
   "auth.loginSubtitle": "Zaloguj się aby znaleźć aktywności w okolicy",
   "auth.createAccount": "Utwórz konto",
   "auth.continueWithGoogle": "Kontynuuj z Google",
+  "auth.googleExistingAccountHint": "Jeśli masz już konto z tym emailem, zalogujemy Cię do niego.",
   "auth.email": "Email",
   "auth.password": "Hasło",
   "auth.confirmPassword": "Powtórz hasło",

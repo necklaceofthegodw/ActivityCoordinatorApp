@@ -13,6 +13,7 @@
   "auth.loginSubtitle": "Sign in to find activities nearby",
   "auth.createAccount": "Create account",
   "auth.continueWithGoogle": "Continue with Google",
+  "auth.googleExistingAccountHint": "If an account already exists with this email, we'll sign you in.",
   "auth.email": "Email",
   "auth.password": "Password",
   "auth.confirmPassword": "Confirm password",
